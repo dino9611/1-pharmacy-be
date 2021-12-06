@@ -1,33 +1,53 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
-  class Users extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
-      // define association here
-    }
-  };
-  Users.init({
-    firstName: DataTypes.STRING,
-    lastName: DataTypes.STRING,
-    gender: DataTypes.STRING,
-    birthdate: DataTypes.DATE,
-    address: DataTypes.STRING,
-    username: DataTypes.STRING,
-    email: DataTypes.STRING,
-    password: DataTypes.STRING,
-    avatar: DataTypes.STRING,
-    role: DataTypes.BOOLEAN,
-    isVerified: DataTypes.BOOLEAN
-  }, {
-    sequelize,
-    modelName: 'Users',
-  });
-  return Users;
-};
+const Sequelize = require('sequelize');
+const sequelize = require('../util/database');
+const Users = sequelize.define('Users', {
+	id: {
+		allowNull: false,
+		autoIncrement: true,
+		primaryKey: true,
+		type: Sequelize.INTEGER,
+	},
+	firstName: {
+		type: Sequelize.STRING,
+	},
+	lastName: {
+		type: Sequelize.STRING,
+	},
+	gender: {
+		type: Sequelize.STRING,
+	},
+	birthdate: {
+		type: Sequelize.DATE,
+	},
+	address: {
+		type: Sequelize.STRING,
+	},
+	username: {
+		type: Sequelize.STRING,
+	},
+	email: {
+		type: Sequelize.STRING,
+	},
+	password: {
+		type: Sequelize.STRING,
+	},
+	avatar: {
+		type: Sequelize.STRING,
+	},
+	isAdmin: {
+		type: Sequelize.BOOLEAN,
+	},
+	isVerified: {
+		type: Sequelize.BOOLEAN,
+	},
+	createdAt: {
+		allowNull: false,
+		type: Sequelize.DATE,
+	},
+	updatedAt: {
+		allowNull: false,
+		type: Sequelize.DATE,
+	},
+});
+
+module.exports = Users;

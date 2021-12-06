@@ -12,14 +12,17 @@ module.exports = {
 		 *   isBetaMember: false
 		 * }], {});
 		 */
-		let dataInput = fs.readFileSync('./seeders/orderSeed.json', 'utf8');
+		let dataInput = fs.readFileSync(
+			'./seeders/Medicine_ingredientsSeed.json',
+			'utf8',
+		);
 		let data = JSON.parse(dataInput);
 		let newData = data.map((element) => {
 			element.createdAt = faker.date.past();
 			element.updatedAt = new Date();
 			return element;
 		});
-		return queryInterface.bulkInsert('Orders', newData, {});
+		return queryInterface.bulkInsert('Medicine_ingredients', newData, {});
 	},
 
 	down: async (queryInterface, Sequelize) => {
@@ -29,6 +32,6 @@ module.exports = {
 		 * Example:
 		 * await queryInterface.bulkDelete('People', null, {});
 		 */
-		return queryInterface.bulkDelete('Orders', null, {});
+		return queryInterface.bulkDelete('Medicine_ingredients', null, {});
 	},
 };

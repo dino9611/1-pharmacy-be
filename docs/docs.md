@@ -3,15 +3,13 @@
 ## environment setup
 
 - npm install
-- npx sequelize init
-- change config file to credentials and database
-- npx sequelize db:create
-- npx sequelize db:migrate
-- npx sequelize db:seed
+- node dbInit.js
+- npx sequelize db:seed 20211206170643-developmentSeed.js
 
 ## Side notes
 
-- don't mess with model
-- setup server and make middleware first
-- data relations will be worked on in the afternoon
-- database sufficient to make controller for user service and admin finance service
+- unable to seed many to many relationship table :
+  - Medicine_ingredients
+  - Cart_details
+  - Prescriptions
+  - Order_details

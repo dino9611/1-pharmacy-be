@@ -1,9 +1,8 @@
 'use strict';
 const fs = require('fs');
 const faker = require('faker');
-
 module.exports = {
-	up: (queryInterface, Sequelize) => {
+	up: async (queryInterface, Sequelize) => {
 		/**
 		 * Add seed commands here.
 		 *
@@ -13,25 +12,23 @@ module.exports = {
 		 *   isBetaMember: false
 		 * }], {});
 		 */
-		let dataInput = fs.readFileSync('./seeders/userSeed.json', 'utf8');
+		let dataInput = fs.readFileSync('./seeders/CartsSeed.json', 'utf8');
 		let data = JSON.parse(dataInput);
 		let newData = data.map((element) => {
-			element.birthdate = new Date();
-			element.isVerified = 0 ? false : true;
 			element.createdAt = faker.date.past();
 			element.updatedAt = new Date();
 			return element;
 		});
-		return queryInterface.bulkInsert('Users', newData, {});
+		return queryInterface.bulkInsert('Carts', newData, {});
 	},
 
-	down: (queryInterface, Sequelize) => {
+	down: async (queryInterface, Sequelize) => {
 		/**
 		 * Add commands to revert seed here.
 		 *
 		 * Example:
 		 * await queryInterface.bulkDelete('People', null, {});
 		 */
-		return queryInterface.bulkDelete('Users', null, {});
+		return queryInterface.bulkDelete('Carts', null, {});
 	},
 };

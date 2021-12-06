@@ -1,25 +1,13 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
-const Orders = sequelize.define('Orders', {
+const Prescriptions = sequelize.define('Prescriptions', {
 	id: {
 		allowNull: false,
 		autoIncrement: true,
 		primaryKey: true,
 		type: Sequelize.INTEGER,
 	},
-	shipping_name: {
-		type: Sequelize.STRING,
-	},
-	shipping_address: {
-		type: Sequelize.STRING,
-	},
-	shipping_phone_number: {
-		type: Sequelize.STRING,
-	},
-	payment_image_proof: {
-		type: Sequelize.STRING,
-	},
-	transaction_number: {
+	image: {
 		type: Sequelize.STRING,
 	},
 	status: {
@@ -35,4 +23,4 @@ const Orders = sequelize.define('Orders', {
 	},
 });
 
-module.exports = Orders;
+module.exports = Prescriptions;

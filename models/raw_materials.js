@@ -1,28 +1,22 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
-const Orders = sequelize.define('Orders', {
+const Raw_materials = sequelize.define('Raw_materials', {
 	id: {
 		allowNull: false,
 		autoIncrement: true,
 		primaryKey: true,
 		type: Sequelize.INTEGER,
 	},
-	shipping_name: {
+	name: {
 		type: Sequelize.STRING,
 	},
-	shipping_address: {
-		type: Sequelize.STRING,
+	price: {
+		type: Sequelize.INTEGER,
 	},
-	shipping_phone_number: {
-		type: Sequelize.STRING,
+	bottle_quantity: {
+		type: Sequelize.INTEGER,
 	},
-	payment_image_proof: {
-		type: Sequelize.STRING,
-	},
-	transaction_number: {
-		type: Sequelize.STRING,
-	},
-	status: {
+	quantity_per_bottle: {
 		type: Sequelize.INTEGER,
 	},
 	createdAt: {
@@ -35,4 +29,4 @@ const Orders = sequelize.define('Orders', {
 	},
 });
 
-module.exports = Orders;
+module.exports = Raw_materials;

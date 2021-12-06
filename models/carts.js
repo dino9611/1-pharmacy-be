@@ -1,17 +1,14 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
-const Order_details = sequelize.define('Order_details', {
+const Carts = sequelize.define('Carts', {
 	id: {
 		allowNull: false,
 		autoIncrement: true,
 		primaryKey: true,
 		type: Sequelize.INTEGER,
 	},
-	quantity: {
-		type: Sequelize.INTEGER,
-	},
-	price: {
-		type: Sequelize.INTEGER,
+	isCheckout: {
+		type: Sequelize.BOOLEAN,
 	},
 	createdAt: {
 		allowNull: false,
@@ -23,4 +20,4 @@ const Order_details = sequelize.define('Order_details', {
 	},
 });
 
-module.exports = Order_details;
+module.exports = Carts;
