@@ -21,6 +21,7 @@ const Raw_materials = sequelize.define('Raw_materials', {
 	},
 	quantity_left: {
 		type: Sequelize.INTEGER,
+		default: 10,
 	},
 	createdAt: {
 		allowNull: false,

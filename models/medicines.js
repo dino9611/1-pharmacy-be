@@ -19,6 +19,10 @@ const Medicines = sequelize.define('Medicines', {
 	image: {
 		type: Sequelize.STRING,
 	},
+	quantityInStock: {
+		type: Sequelize.INTEGER,
+		default: 10,
+	},
 	serving: {
 		type: Sequelize.INTEGER,
 	},
