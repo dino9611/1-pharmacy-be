@@ -19,6 +19,10 @@ const Raw_materials = sequelize.define('Raw_materials', {
 	quantity_per_bottle: {
 		type: Sequelize.INTEGER,
 	},
+	quantity_left: {
+		type: Sequelize.INTEGER,
+		default: 10,
+	},
 	createdAt: {
 		allowNull: false,
 		type: Sequelize.DATE,
