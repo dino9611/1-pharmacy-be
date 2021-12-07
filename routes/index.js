@@ -1,6 +1,8 @@
 const express = require('express');
 const routes = express.Router();
 const inventoryRoutes = require('./api/inventory');
+const adminRoutes = require('./api/admin');
+
 // @import router path
 
 routes.get('/', (req, res) => {
@@ -12,5 +14,7 @@ routes.get('/', (req, res) => {
 //@ admin use routes for inventory
 //! private
 routes.use('/inventory', inventoryRoutes);
+routes.use('/admin', adminRoutes);
+
 
 module.exports = routes;

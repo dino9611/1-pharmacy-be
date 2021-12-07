@@ -1,24 +1,15 @@
 const jwt = require("jsonwebtoken");
-
-module.exports.verifyUserToken = () => {
-    const key = "";
-    return verifyTokenAccess(key, false);
-}
-
-module.exports.verifyAdminToken = () => {
-    const key = "";
-    return verifyTokenAccess(key, true);
-}
+const { adminKey, userKey } = require("../helpers/constants");
 
 const verifyTokenAccess = (key, isCheckingAdmin) => {
     return (req, res, next) => {
-        const token = req.headers["Authorization"];
-
+        const token = req.headers["authorization"];
+        
         if (!token) {
             return res.status(400).send({ message: "BAD REQUEST: Authorization header is required!" });
         }
         
-        jwt.verify(token, key, (err, decoded) => {
+        jwt.verify(token, key, async (err, decoded) => {
             if (err) {
                 return res.status(401).send({ message: "UNAUTHORIZED: You are not authorized!" });
             }
@@ -28,7 +19,7 @@ const verifyTokenAccess = (key, isCheckingAdmin) => {
             try {
                 const userData = await Users.findOne({
                     where: {
-                        id: decoded.id,
+                        id: decoded.id
                     }
                 });
 
@@ -45,3 +36,11 @@ const verifyTokenAccess = (key, isCheckingAdmin) => {
         });
     };
 };
+
+module.exports.verifyUserToken = () => {
+    return verifyTokenAccess(userKey, false);
+}
+
+module.exports.verifyAdminToken = () => {
+    return verifyTokenAccess(adminKey, true);
+}
