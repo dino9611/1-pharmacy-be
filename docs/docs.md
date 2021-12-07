@@ -4,7 +4,7 @@
 
 - npm install
 - node dbInit.js
-- npx sequelize db:seed 20211206170643-developmentSeed.js
+- npx sequelize db:seed --seed 20211206170643-developmentSeed.js
 
 ## Side notes
 

@@ -8,6 +8,7 @@ routes.get('/', (req, res) => {
 });
 
 // @defining router path
+//* public
 
 //@ admin use routes for inventory
 //! private

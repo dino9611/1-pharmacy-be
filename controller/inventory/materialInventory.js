@@ -15,13 +15,13 @@ class Material {
 
 		Raw_materials.update(
 			{
-				name: name,
-				price: price,
-				bottle_quantity: bottle_quantity,
-				quantity_per_bottle: quantity_per_bottle,
+				name,
+				price,
+				bottle_quantity,
+				quantity_per_bottle,
 				UnitId,
 			},
-			{ where: { id: id } },
+			{ where: { id } },
 		)
 			.then((response) => {
 				res.json(`${id}, updated`);
@@ -34,13 +34,12 @@ class Material {
 		res.send('update stock according to quantity not bottle');
 	}
 	static async deleteStock(req, res) {
-		let { id } = req.body;
 		await Raw_materials.destroy({
 			where: {
-				id,
+				id: req.params.id,
 			},
 		});
-		res.send(`${req.body.id} deleted`);
+		res.send(`deleted`);
 	}
 }
 

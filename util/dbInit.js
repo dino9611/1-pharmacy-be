@@ -39,9 +39,9 @@ Shipping_methods.hasMany(Orders);
 Payment_methods.hasMany(Orders);
 
 sequelize
-	.sync()
+	.sync({ force: true })
 	.then((result) => {
-		console.log(result);
+		console.log('sync');
 	})
 	.catch((err) => {
 		console.log(err);
