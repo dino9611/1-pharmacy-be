@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 8081;
 const sequelize = require('./util/database');
 
 app.use(cors());
-app.use(express.json({ extended: true }));
+app.use(express.json());
 
 app.use('/', require('./routes/index'));
 
