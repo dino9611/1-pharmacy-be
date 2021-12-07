@@ -9,6 +9,7 @@ inventoryRoutes.get('/', Product.getList);
 inventoryRoutes.post('/', Product.createProduct);
 inventoryRoutes.put('/', Product.updateInformation);
 inventoryRoutes.delete('/:id', Product.deleteStock);
+inventoryRoutes.post('/stock', Product.editStock);
 //@ admin raw material
 //! private
 inventoryRoutes.get('/material', Material.getList);

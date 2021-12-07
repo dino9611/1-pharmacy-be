@@ -17,13 +17,30 @@ class Product {
 		const list = await Medicines.findAll();
 		res.json(list);
 	}
-	static async addStock(req, res) {
-		res.send('add stock quantity from existing product on the list');
+	static async editStock(req, res) {
+		const { id, quantityInStock } = req.body;
+
+		//handle calculation on frontend
+		let data = await Medicines.update(
+			{ quantityInStock },
+			{
+				where: { id },
+			},
+		);
+		res.send(data);
 	}
 	static async createProduct(req, res) {
 		//request format [{medicineInfo, materials:[{}]}]
-		let { name, price, description, image, serving, isDeleted, materials } =
-			req.body;
+		let {
+			name,
+			price,
+			description,
+			image,
+			serving,
+			isDeleted,
+			materials,
+			quantityInStock,
+		} = req.body;
 
 		try {
 			let newMedicine = await Medicines.create({
@@ -33,6 +50,7 @@ class Product {
 				image,
 				serving,
 				isDeleted,
+				quantityInStock,
 			}); // insert to Medicines table
 
 			let materialList = materials.map((element) => {
@@ -55,16 +73,24 @@ class Product {
 		}
 	}
 	static async updateInformation(req, res) {
-		const { name, price, description, image, serving, isDeleted, id } =
-			req.body;
+		const {
+			name,
+			price,
+			description,
+			image,
+			serving,
+			isDeleted,
+			id,
+			quantityInStock,
+		} = req.body;
 
 		let update = await Medicines.update(
-			{ name, price, description, image, serving, isDeleted },
+			{ name, price, description, image, serving, isDeleted, quantityInStock },
 			{
 				where: { id },
 			},
 		);
-		res.send('update');
+		res.send('updated'); //get all data later
 	}
 	static async deleteStock(req, res) {
 		let { id } = req.params;
