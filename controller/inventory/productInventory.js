@@ -23,7 +23,7 @@ class Product {
 	static async createProduct(req, res) {
 		//request format [{medicineInfo, materials:[{}]}]
 		let { name, price, description, image, serving, isDeleted, materials } =
-			req.body[0];
+			req.body;
 
 		try {
 			let newMedicine = await Medicines.create({
@@ -57,7 +57,14 @@ class Product {
 	static async updateInformation(req, res) {
 		const { name, price, description, image, serving, isDeleted, id } =
 			req.body;
-		res.send(req.body);
+
+		let update = await Medicines.update(
+			{ name, price, description, image, serving, isDeleted },
+			{
+				where: { id },
+			},
+		);
+		res.send('update');
 	}
 	static async deleteStock(req, res) {
 		let { id } = req.body;
