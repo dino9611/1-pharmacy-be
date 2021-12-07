@@ -1,18 +1,18 @@
 require('dotenv').config();
-const sequelize = require('./util/database');
+const sequelize = require('./database');
 
-const Cart_details = require('./models/cart_details');
-const Carts = require('./models/carts');
-const Order_details = require('./models/order_details');
-const Orders = require('./models/orders');
-const Prescriptions = require('./models/prescriptions');
-const Raw_materials = require('./models/raw_materials');
-const Units = require('./models/units');
-const Users = require('./models/users');
-const Medicines = require('./models/medicines');
-const Medicine_ingredients = require('./models/medicine_ingredients');
-const Shipping_methods = require('./models/shipping_methods');
-const Payment_methods = require('./models/payment_methods');
+const Cart_details = require('../models/cart_details');
+const Carts = require('../models/carts');
+const Order_details = require('../models/order_details');
+const Orders = require('../models/orders');
+const Prescriptions = require('../models/prescriptions');
+const Raw_materials = require('../models/raw_materials');
+const Units = require('../models/units');
+const Users = require('../models/users');
+const Medicines = require('../models/medicines');
+const Medicine_ingredients = require('../models/medicine_ingredients');
+const Shipping_methods = require('../models/shipping_methods');
+const Payment_methods = require('../models/payment_methods');
 
 Users.hasOne(Carts);
 Carts.belongsTo(Users);

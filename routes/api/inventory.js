@@ -2,9 +2,6 @@ const express = require('express');
 const inventoryRoutes = express.Router();
 const Material = require('../../controller/inventory/materialInventory');
 
-//@ CMS routes
-//! private
-
 //@ admin raw material and pharmacy product routes
 //! private
 
@@ -17,7 +14,7 @@ inventoryRoutes.post('/', async (req, res) => {
 
 inventoryRoutes.get('/material', Material.getList);
 inventoryRoutes.post('/material', Material.addMaterial);
-inventoryRoutes.put('/material/:id', Material.updateInformation);
+inventoryRoutes.put('/material/', Material.updateInformation);
 inventoryRoutes.put('/material/:id/:q', Material.updateQuantity);
 inventoryRoutes.delete('/material', Material.deleteStock);
 
