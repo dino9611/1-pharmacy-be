@@ -67,13 +67,14 @@ class Product {
 		res.send('update');
 	}
 	static async deleteStock(req, res) {
-		let { id } = req.body;
+		let { id } = req.params;
 		await Medicines.destroy({
 			where: {
 				id,
 			},
 		});
-		res.send(`${req.body.id} deleted`);
+		// this is to destroy medicine
+		res.send(`deleted`);
 	}
 }
 
