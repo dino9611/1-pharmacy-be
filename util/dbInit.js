@@ -45,3 +45,5 @@
 // 	.catch((err) => {
 // 		console.log(err);
 // 	});
+
+//has many helper method (get, set, create) => getChildName setParentName

@@ -63,7 +63,7 @@ module.exports = {
 		);
 		await queryInterface.bulkInsert(
 			'Raw_materials',
-			parser('./seeders/Raw_materialsSeed.json'),
+			parser('./seeders/Raw_materialSeeds.json'),
 			{},
 		);
 		await queryInterface.bulkInsert(
