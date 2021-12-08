@@ -2,6 +2,7 @@ const Users = require("../models/users");
 const { Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
 const { adminKey, userKey } = require("../helpers/constants");
+const bcrypt = require("bcryptjs");
 
 module.exports = {
     login: async (req, res) => {

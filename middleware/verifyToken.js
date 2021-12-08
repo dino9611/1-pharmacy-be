@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { adminKey, userKey } = require("../helpers/constants");
+const Users = require("../models/users");
 
 const verifyTokenAccess = (key, isCheckingAdmin) => {
     return (req, res, next) => {
