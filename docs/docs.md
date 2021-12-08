@@ -9,6 +9,7 @@
 - npx sequelize db:seed:all
 - nodemon app.js
 
+
 ## Side notes
 
 - unable to seed many to many relationship table :
