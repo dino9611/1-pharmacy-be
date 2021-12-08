@@ -23,7 +23,7 @@ async function initialize() {
 	}
 }
 
-initialize();
+initialize(); // init db if no db available
 const sequelize = new Sequelize(
 	process.env.MYSQL_DATABASE,
 	process.env.MYSQL_USERNAME,
