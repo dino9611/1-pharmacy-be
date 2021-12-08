@@ -5,35 +5,36 @@ const Medicine_ingredients = db.Medicine_ingredients;
 const Raw_materials = db.Raw_materials;
 const Units = db.Units;
 
-class Product {
-	static async getList(req, res) {
+class CustomOrder {
+	static async getPrescriptionList(req, res) {
 		const list = await Medicines.findAll();
 		res.json(list);
 	}
 	static async editStock(req, res) {
-		const { quantityInStock } = req.body;
+		const { id, quantityInStock } = req.body;
 
 		//handle calculation on frontend
 		let data = await Medicines.update(
 			{ quantityInStock },
 			{
-				where: { id: req.params.id },
+				where: { id },
 			},
 		);
-		res.send('edited');
+		res.send(data);
 	}
-	static async createProduct(req, res) {
-		//request format [{medicineInfo, materials:[{}]}]
+	static async createPrescription(req, res) {
+		//request format [{medicineInfo, materials:[{},{}]
 		let {
 			name,
 			price,
 			description,
-			image,
 			serving,
 			isDeleted,
 			materials,
-			quantityInStock, // => handle in front end
+			quantityInStock,
 		} = req.body;
+
+		let image, PrescriptionId;
 
 		try {
 			let newMedicine = await Medicines.create({
@@ -65,7 +66,7 @@ class Product {
 			res.send(error);
 		}
 	}
-	static async updateInformation(req, res) {
+	static async updatePrescriptionInformation(req, res) {
 		const {
 			name,
 			price,
@@ -73,30 +74,19 @@ class Product {
 			image,
 			serving,
 			isDeleted,
+			id,
 			quantityInStock,
 		} = req.body;
 
-		try {
-			await Medicines.update(
-				{
-					name,
-					price,
-					description,
-					image,
-					serving,
-					isDeleted,
-					quantityInStock,
-				},
-				{
-					where: { id: req.params.id },
-				},
-			);
-		} catch (error) {
-			console.log(error);
-		}
+		await Medicines.update(
+			{ name, price, description, image, serving, isDeleted, quantityInStock },
+			{
+				where: { id },
+			},
+		);
 		res.send('updated'); //get all data later
 	}
-	static async deleteStock(req, res) {
+	static async deletePrescription(req, res) {
 		let { id } = req.params;
 		await Medicines.destroy({
 			where: {
@@ -108,5 +98,4 @@ class Product {
 	}
 }
 
-module.exports = Product;
-
+module.exports = CustomOrder;
