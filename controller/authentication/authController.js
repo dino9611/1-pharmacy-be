@@ -1,9 +1,12 @@
 const Users = require('../../models/users');
 const { Op } = require('sequelize');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { adminKey, userKey } = require('../../helpers/constants');
-const { generateSessionToken } = require('../../helpers/token');
+const { generateSessionToken, generateForgotPasswordToken } = require('../../helpers/token');
+const { transporter } = require('../../helpers/transporter');
+const handlebars = require("handlebars");
+const path = require("path");
+const fs = require("fs");
 
 module.exports = {
     register: async (req, res) => {
@@ -35,8 +38,8 @@ module.exports = {
             });
 
             const token = generateSessionToken(newUserData, userKey);
-
             newUserData.token = token;
+
             res.status(201).send(newUserData);
         } catch (err) {
             console.error(err.message);
@@ -64,6 +67,63 @@ module.exports = {
             };
 
             res.status(401).send("UNAUTHORIZED: Invalid Credentials");
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
+
+    forgotPassword: async (req, res) => {
+        try {
+            const { email } = req.body;
+
+            if (!email){
+                return res.status(400).send("BAD REQUEST: Email is required!");
+            };
+
+            const userData = await Users.findOne({ where: { email } });
+
+            if (userData){
+                const emailToken = generateForgotPasswordToken(userData, userKey);
+
+                let filepath = path.resolve(__dirname, "../../template/resetPasswordEmail.html");
+                let htmlString = fs.readFileSync(filepath, "utf-8");
+                const template = handlebars.compile(htmlString);
+
+                const htmlToEmail = template({
+                  token: emailToken
+                });
+
+                transporter.sendMail({
+                  from: "Obatin Pharmaceuticals <katherinedavenia24@gmail.com>",
+                  to: email,
+                  subject: "Reset Password Confirmation",
+                  html: htmlToEmail,
+                });
+            };
+            return res.sendStatus(204);
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
+
+    resetPassword: async (req, res) => {
+        try {
+            const { newPassword } = req.body;
+
+            if(!newPassword){
+                return res.status(400).send("BAD REQUEST: New password is required!");
+            };
+
+            const hashPassword = await bcrypt.hash(newPassword, 10);
+
+            await Users.update(
+                { password: hashPassword },
+                { where: { id: 1 } }
+            );
+
+            return res.status(200).send({ message: "Reset password successful!" }); 
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
