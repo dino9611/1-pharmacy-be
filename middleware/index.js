@@ -1,4 +1,4 @@
-const {verifyUserToken, verifyAdminToken} = require("./verifyToken");
+const {verifyUserToken, verifyAdminToken} = require('./verifyToken');
 
 module.exports = {
   verifyUserToken,
