@@ -1,17 +1,9 @@
-const Medicines = require('../../models/medicines');
-const Medicine_ingredients = require('../../models/medicine_ingredients');
-const Raw_materials = require('../../models/raw_materials');
-const Units = require('../../models/units');
+const db = require('../../models/');
 
-//define relationship if has one sequelize doesn't know the inner working of the table
-Raw_materials.belongsToMany(Medicines, {
-	through: Medicine_ingredients,
-});
-Medicines.belongsToMany(Raw_materials, {
-	through: Medicine_ingredients,
-});
-Units.hasMany(Medicine_ingredients);
-Medicines.hasMany(Prescriptions);
+const Medicines = db.Medicines;
+const Medicine_ingredients = db.Medicine_ingredients;
+const Raw_materials = db.Raw_materials;
+const Units = db.Units;
 
 class CustomOrder {
 	static async getPrescriptionList(req, res) {

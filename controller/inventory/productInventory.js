@@ -1,16 +1,9 @@
-const Medicines = require('../../models/medicines');
-const Medicine_ingredients = require('../../models/medicine_ingredients');
-const Raw_materials = require('../../models/raw_materials');
-const Units = require('../../models/units');
+const db = require('../../models/');
 
-//define relationship if has one sequelize doesn't know the inner working of the table
-Raw_materials.belongsToMany(Medicines, {
-	through: Medicine_ingredients,
-});
-Medicines.belongsToMany(Raw_materials, {
-	through: Medicine_ingredients,
-});
-Units.hasMany(Medicine_ingredients);
+const Medicines = db.Medicines;
+const Medicine_ingredients = db.Medicine_ingredients;
+const Raw_materials = db.Raw_materials;
+const Units = db.Units;
 
 class Product {
 	static async getList(req, res) {
@@ -18,16 +11,16 @@ class Product {
 		res.json(list);
 	}
 	static async editStock(req, res) {
-		const { id, quantityInStock } = req.body;
+		const { quantityInStock } = req.body;
 
 		//handle calculation on frontend
 		let data = await Medicines.update(
 			{ quantityInStock },
 			{
-				where: { id },
+				where: { id: req.params.id },
 			},
 		);
-		res.send(data);
+		res.send('edited');
 	}
 	static async createProduct(req, res) {
 		//request format [{medicineInfo, materials:[{}]}]
@@ -39,7 +32,7 @@ class Product {
 			serving,
 			isDeleted,
 			materials,
-			quantityInStock,
+			quantityInStock, // => handle in front end
 		} = req.body;
 
 		try {
@@ -80,16 +73,27 @@ class Product {
 			image,
 			serving,
 			isDeleted,
-			id,
 			quantityInStock,
 		} = req.body;
 
-		let update = await Medicines.update(
-			{ name, price, description, image, serving, isDeleted, quantityInStock },
-			{
-				where: { id },
-			},
-		);
+		try {
+			await Medicines.update(
+				{
+					name,
+					price,
+					description,
+					image,
+					serving,
+					isDeleted,
+					quantityInStock,
+				},
+				{
+					where: { id: req.params.id },
+				},
+			);
+		} catch (error) {
+			console.log(error);
+		}
 		res.send('updated'); //get all data later
 	}
 	static async deleteStock(req, res) {

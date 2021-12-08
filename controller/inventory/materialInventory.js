@@ -1,4 +1,6 @@
-const Raw_materials = require('../../models/raw_materials');
+const db = require('../../models/index');
+
+const Raw_materials = db.Raw_materials;
 
 class Material {
 	static async getList(req, res) {
@@ -21,12 +23,13 @@ class Material {
 				quantity_per_bottle: quantity_per_bottle,
 				UnitId,
 			},
-			{ where: { id: id } },
+			{ where: { id: req.params.id } },
 		)
 			.then((response) => {
-				res.json(`${id}, updated`);
+				res.json(`${req.params.id}, updated`);
 			})
 			.catch((error) => {
+				console.log(error);
 				res.status(500).json({ error });
 			});
 	}
@@ -34,13 +37,12 @@ class Material {
 		res.send('update stock according to quantity not bottle');
 	}
 	static async deleteStock(req, res) {
-		let { id } = req.body;
 		await Raw_materials.destroy({
 			where: {
-				id,
+				id: req.params.id,
 			},
 		});
-		res.send(`${req.body.id} deleted`);
+		res.send(`deleted`);
 	}
 }
 
