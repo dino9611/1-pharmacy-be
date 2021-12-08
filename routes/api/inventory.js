@@ -1,21 +1,20 @@
 const express = require('express');
 const inventoryRoutes = express.Router();
 const Material = require('../../controller/inventory/materialInventory');
+const Product = require('../../controller/inventory/productInventory');
 
-//@ admin raw material and pharmacy product routes
+//@admin product
 //! private
-
-inventoryRoutes.get('/', async (req, res) => {
-	res.send('product created by admin list page');
-});
-inventoryRoutes.post('/', async (req, res) => {
-	res.send('admin create new product');
-});
-
+inventoryRoutes.get('/', Product.getList);
+inventoryRoutes.post('/', Product.createProduct);
+inventoryRoutes.put('/', Product.updateInformation);
+inventoryRoutes.delete('/:id', Product.deleteStock);
+//@ admin raw material
+//! private
 inventoryRoutes.get('/material', Material.getList);
 inventoryRoutes.post('/material', Material.addMaterial);
 inventoryRoutes.put('/material/', Material.updateInformation);
 inventoryRoutes.put('/material/:id/:q', Material.updateQuantity);
-inventoryRoutes.delete('/material', Material.deleteStock);
+inventoryRoutes.delete('/material/:id', Material.deleteStock);
 
 module.exports = inventoryRoutes;
