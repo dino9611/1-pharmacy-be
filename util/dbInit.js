@@ -32,14 +32,13 @@ Raw_materials.belongsToMany(Medicines, {
 Medicines.belongsToMany(Raw_materials, {
 	through: Medicine_ingredients,
 });
-Medicines.hasMany(Prescriptions);
-Users.hasMany(Prescriptions);
-Prescriptions.belongsTo(Medicines);
+Users.hasMany(Prescriptions, { onDelete: 'cascade' });
+Prescriptions.hasMany(Medicines, { onDelete: 'cascade' });
 Shipping_methods.hasMany(Orders);
 Payment_methods.hasMany(Orders);
 
 sequelize
-	.sync()
+	.sync({ force: true })
 	.then((result) => {
 		console.log(result);
 	})
