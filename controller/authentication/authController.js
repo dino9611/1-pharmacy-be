@@ -40,6 +40,21 @@ module.exports = {
             const token = generateSessionToken(newUserData, userKey);
             newUserData.token = token;
 
+            let filepath = path.resolve(__dirname, "../../template/resetPasswordEmail.html");
+            let htmlString = fs.readFileSync(filepath, "utf-8");
+            const template = handlebars.compile(htmlString);
+
+            const htmlToEmail = template({
+                token
+            });
+
+            transporter.sendMail({
+                from: "Obatin Pharmaceuticals <katherinedavenia24@gmail.com>",
+                to: email,
+                subject: "Verify Email Confirmation",
+                html: htmlToEmail,
+            });
+
             res.status(201).send(newUserData);
         } catch (err) {
             console.error(err.message);
@@ -125,6 +140,22 @@ module.exports = {
             );
 
             return res.status(200).send({ message: "Reset password successful!" }); 
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
+
+    verifyAccount: async (req, res) => {
+        try {
+            const { id } = req.user;
+
+            await Users.update(
+                { isVerified: true },
+                { where: { id } }
+            );
+
+            return res.status(200).send({ message: "Account verification is successful!" }); 
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });

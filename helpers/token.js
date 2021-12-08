@@ -1,16 +1,16 @@
 const jwt = require("jsonwebtoken");
 
-module.exports.generateSessionToken = (data, key) => {
+module.exports.generateSessionToken = (user, key) => {
   return jwt.sign(
-    { id: data.id, username: data.username, email: data.email },
+    { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin },
     key,
     { expiresIn: "2h" }
   );
 }
 
-module.exports.generateForgotPasswordToken = (data, key) => {
+module.exports.generateForgotPasswordToken = (user, key) => {
   return jwt.sign(
-    { id: data.id },
+    { id: user.id },
     key,
     { expiresIn: "1h" }
   );

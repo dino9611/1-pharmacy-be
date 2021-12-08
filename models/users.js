@@ -41,6 +41,8 @@ const Users = sequelize.define('Users', {
 	},
 	isVerified: {
 		type: Sequelize.BOOLEAN,
+		allowNull: false,
+		defaultValue: false,
 	},
 	createdAt: {
 		allowNull: false,
