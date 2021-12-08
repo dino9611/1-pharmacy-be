@@ -1,4 +1,6 @@
-const Users = require('../../models/users');
+const db = require('../../models/index');
+
+const Users = db.Users;
 
 class Profile {
 	static async getProfile(req, res) {
@@ -8,7 +10,6 @@ class Profile {
 	}
 	static async editProfile(req, res) {
 		let input = req.body;
-		console.log(input);
 		let data = Users.update({ ...input }, { where: { id: req.params.id } });
 
 		res.send(`update profile user id:${req.params.id}`);
