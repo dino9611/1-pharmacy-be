@@ -3,9 +3,11 @@
 ## environment setup
 
 - npm install
-- npx sequelize init (first time clone/ no sequelize config)
-- node dbInit.js
+- delete 1_pharma in database
+- nodemon app.js
+- exit
 - npx sequelize db:seed:all
+- nodemon app.js
 
 ## Side notes
 
