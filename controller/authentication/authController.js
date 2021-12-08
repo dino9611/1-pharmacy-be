@@ -111,6 +111,7 @@ module.exports = {
     resetPassword: async (req, res) => {
         try {
             const { newPassword } = req.body;
+            const { id } = req.user;
 
             if(!newPassword){
                 return res.status(400).send("BAD REQUEST: New password is required!");
@@ -120,7 +121,7 @@ module.exports = {
 
             await Users.update(
                 { password: hashPassword },
-                { where: { id: 1 } }
+                { where: { id } }
             );
 
             return res.status(200).send({ message: "Reset password successful!" }); 
