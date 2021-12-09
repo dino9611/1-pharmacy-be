@@ -50,6 +50,20 @@ module.exports = {
 			});
 			return newData;
 		};
+		const manyToManyInserter = (path, tableName) => {
+			const data = parser(path);
+			data.forEach(async item => {
+				try {
+					await queryInterface.bulkInsert(
+						tableName,
+						[item],
+						{}
+					)
+				} catch (error) {
+					console.log(error.original.message);
+				}
+			});
+		}
 
 		await queryInterface.bulkInsert(
 			'Users',
@@ -78,12 +92,40 @@ module.exports = {
 		);
 		await queryInterface.bulkInsert(
 			'Orders',
-			parser('./seeders/OrderSeeds.json'),
+			parser('./seeders/OrderSeeds.json').map(order => ({
+				...order,
+				userId: faker.datatype.number({
+					min: 1,
+					max: 200
+				})
+			})),
 			{},
 		);
-		return await queryInterface.bulkInsert(
+
+		manyToManyInserter(
+			'./seeders/Medicine_ingredientsSeed.json',
+			'Medicine_ingredients'
+		);
+
+		manyToManyInserter(
+			'./seeders/PrescriptionsSeed.json',
+			'Prescriptions'
+		);
+
+		manyToManyInserter(
+			'./seeders/Order_detailsSeeds.json',
+			'Order_details'
+		)
+
+		await queryInterface.bulkInsert(
 			'Carts',
 			parser('./seeders/CartsSeed.json'),
+			{},
+		);
+
+		await queryInterface.bulkInsert(
+			'Cart_details',
+			parser('./seeders/Cart_detailsSeed.json'),
 			{},
 		);
 	},
@@ -95,6 +137,26 @@ module.exports = {
 		 * Example:
 		 * await queryInterface.bulkDelete('People', null, {});
 		 */
-		return queryInterface.bulkDelete('Units', null, {});
+		const options = {
+			truncate: true,
+		}
+		await queryInterface.sequelize.query('SET FOREIGN_KEY_CHECKS = 0', null, {
+			raw: true
+		});
+		await queryInterface.bulkDelete('Cart_details', null, options);
+		await queryInterface.bulkDelete('Carts', null, options);
+		await queryInterface.bulkDelete('Order_details', null, options);
+		await queryInterface.bulkDelete('Prescriptions', null, options);
+		await queryInterface.bulkDelete('Medicine_ingredients', null, options);
+		await queryInterface.bulkDelete('Orders', null, options);
+		await queryInterface.bulkDelete('Payment_methods', null, options);
+		await queryInterface.bulkDelete('Shipping_methods', null, options);
+		await queryInterface.bulkDelete('Raw_materials', null, options);
+		await queryInterface.bulkDelete('Medicines', null, options);
+		await queryInterface.bulkDelete('Users', null, options);
+		await queryInterface.bulkDelete('Units', null, options);
+		await queryInterface.sequelize.query('SET FOREIGN_KEY_CHECKS = 1', null, {
+			raw: true
+		});
 	},
 };

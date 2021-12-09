@@ -79,6 +79,7 @@ db.Medicines.belongsToMany(db.Raw_materials, {
 	through: db.Medicine_ingredients,
 });
 db.Users.hasMany(db.Prescriptions);
+db.Users.hasMany(db.Orders);
 db.Prescriptions.hasMany(db.Medicines);
 db.Shipping_methods.hasMany(db.Orders);
 db.Payment_methods.hasMany(db.Orders);

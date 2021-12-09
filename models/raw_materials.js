@@ -21,6 +21,9 @@ module.exports = (sequelize, DataTypes) => {
 		stock_quantity: {
 			type: DataTypes.INTEGER,
 		},
+		quantity_left: {
+			type: DataTypes.INTEGER,
+		},
 		createdAt: {
 			allowNull: false,
 			type: DataTypes.DATE,

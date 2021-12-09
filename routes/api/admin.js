@@ -2,14 +2,12 @@ const express = require('express');
 const adminRoutes = express.Router();
 const { dashboard } = require('../../controller/authentication/authController');
 const { salesReport, revenueReport } = require('../../controller/reportDatas/reportController');
-const { allTransactions, ongoingTransactions } = require('../../controller/reportDatas/userTransactionController');
+const { getAllTransactions } = require('../../controller/reportDatas/transactionController');
 const { verifyAdminToken } = require('../../middleware');
 
 adminRoutes.get('/dashboard', verifyAdminToken(), dashboard);
-adminRoutes.get('/sales', salesReport);
-adminRoutes.get('/revenue', revenueReport);
-adminRoutes.get('/allTransactions', allTransactions);
-adminRoutes.get('/ongoingTransactions', ongoingTransactions);
-
+adminRoutes.get('/sales', verifyAdminToken(), salesReport);
+adminRoutes.get('/revenue', verifyAdminToken(), revenueReport);
+adminRoutes.get('/transactions', verifyAdminToken(), getAllTransactions);
 
 module.exports = adminRoutes;
