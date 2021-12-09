@@ -1,37 +1,88 @@
-'use strict';
+const { Sequelize, DataTypes } = require('sequelize');
+const mysql = require('mysql2/promise');
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+async function initialize() {
+	try {
+		const connection = await mysql.createConnection({
+			host: '127.0.0.1',
+			user: process.env.MYSQL_USERNAME,
+			password: process.env.MYSQL_PASSWORD,
+		});
+
+		await Promise.all([
+			connection.query(
+				`CREATE DATABASE IF NOT EXISTS \`${process.env.MYSQL_DATABASE}\`;`,
+			),
+		]);
+	} catch (error) {
+		console.log(error);
+	}
 }
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+initialize(); // init db if no db available
+const sequelize = new Sequelize(
+	process.env.MYSQL_DATABASE,
+	process.env.MYSQL_USERNAME,
+	process.env.MYSQL_PASSWORD,
+	{
+		dialect: 'mysql',
+		host: '127.0.0.1',
+		pool: {
+			max: 10,
+			min: 0,
+			acquire: 30000,
+			idle: 1000,
+		},
+	},
+);
 
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
+sequelize.authenticate();
 
-db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+db.sequelize = sequelize;
+
+db.Cart_details = require('./cart_details')(sequelize, DataTypes);
+db.Carts = require('./carts')(sequelize, DataTypes);
+db.Order_details = require('./order_details')(sequelize, DataTypes);
+db.Orders = require('./orders')(sequelize, DataTypes);
+db.Prescriptions = require('./prescriptions')(sequelize, DataTypes);
+db.Raw_materials = require('./raw_materials')(sequelize, DataTypes);
+db.Units = require('./units')(sequelize, DataTypes);
+db.Users = require('./users')(sequelize, DataTypes);
+db.Medicines = require('./medicines')(sequelize, DataTypes);
+db.Medicine_ingredients = require('./medicine_ingredients')(
+	sequelize,
+	DataTypes,
+);
+db.Shipping_methods = require('./shipping_methods')(sequelize, DataTypes);
+db.Payment_methods = require('./payment_methods')(sequelize, DataTypes);
+
+//relations
+db.Users.hasOne(db.Carts);
+db.Carts.belongsTo(db.Users);
+db.Carts.belongsToMany(db.Medicines, { through: db.Cart_details });
+db.Medicines.belongsToMany(db.Carts, { through: db.Cart_details });
+db.Orders.belongsToMany(db.Medicines, {
+	through: db.Order_details,
+});
+db.Medicines.belongsToMany(db.Orders, {
+	through: db.Order_details,
+});
+db.Units.hasMany(db.Raw_materials);
+db.Units.hasMany(db.Medicine_ingredients);
+db.Raw_materials.belongsToMany(db.Medicines, {
+	through: db.Medicine_ingredients,
+});
+db.Medicines.belongsToMany(db.Raw_materials, {
+	through: db.Medicine_ingredients,
+});
+db.Users.hasMany(db.Prescriptions);
+db.Prescriptions.hasMany(db.Medicines);
+db.Shipping_methods.hasMany(db.Orders);
+db.Payment_methods.hasMany(db.Orders);
+
+sequelize.sync({ force: false });
 
 module.exports = db;

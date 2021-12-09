@@ -3,8 +3,11 @@
 ## environment setup
 
 - npm install
-- node dbInit.js
-- npx sequelize db:seed 20211206170643-developmentSeed.js
+- delete 1_pharma in database
+- nodemon app.js
+- exit
+- npx sequelize db:seed:all
+- nodemon app.js
 
 ## Side notes
 
