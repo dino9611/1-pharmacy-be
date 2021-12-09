@@ -8,8 +8,14 @@ class Material {
 		res.json({ list });
 	}
 	static async addMaterial(req, res) {
-		await Raw_materials.create(req.body);
-		res.send('added');
+		Raw_materials.create(req.body)
+			.then((data) => {
+				console.log(data);
+				res.send('added');
+			})
+			.catch((err) => {
+				console.log(err);
+			});
 	}
 	static async updateInformation(req, res) {
 		const { name, price, bottle_quantity, quantity_per_bottle, UnitId, id } =
