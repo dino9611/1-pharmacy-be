@@ -35,7 +35,18 @@ module.exports = {
     },
 
     pastTransactions: async (req, res) => {
-        
+        try {
+            const transactions = await sequelize.query(
+                transactionQuery.concat("WHERE o.status = 3 OR o.status = 4;"),
+                {
+                    type: QueryTypes.SELECT
+                });
+
+            res.status(200).send(transactions)
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
     },
 
     allTransactions: async (req, res) => {
