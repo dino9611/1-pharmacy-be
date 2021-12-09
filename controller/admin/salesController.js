@@ -1,4 +1,5 @@
-const Order_details = require('../../models/order_details');
+const db = require('../../models/');
+const Order_details = db.Order_details;
 
 module.exports = {
     salesReport: async (req, res) => {
