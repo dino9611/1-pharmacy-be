@@ -1,4 +1,6 @@
-const Raw_materials = require('../../models/raw_materials');
+const db = require('../../models/index');
+
+const Raw_materials = db.Raw_materials;
 
 class Material {
 	static async getList(req, res) {
@@ -15,18 +17,19 @@ class Material {
 
 		Raw_materials.update(
 			{
-				name,
-				price,
-				bottle_quantity,
-				quantity_per_bottle,
+				name: name,
+				price: price,
+				bottle_quantity: bottle_quantity,
+				quantity_per_bottle: quantity_per_bottle,
 				UnitId,
 			},
-			{ where: { id } },
+			{ where: { id: req.params.id } },
 		)
 			.then((response) => {
-				res.json(`${id}, updated`);
+				res.json(`${req.params.id}, updated`);
 			})
 			.catch((error) => {
+				console.log(error);
 				res.status(500).json({ error });
 			});
 	}
