@@ -4,11 +4,33 @@ const Medicines = db.Medicines;
 const Medicine_ingredients = db.Medicine_ingredients;
 const Raw_materials = db.Raw_materials;
 const Units = db.Units;
+const Orders = db.Orders;
+const Order_details = db.Order_details;
 
 class Product {
 	static async getList(req, res) {
 		const list = await Medicines.findAll();
 		res.json(list);
+	}
+	static async getProductDetail(req, res) {
+		const list = await Medicines.findByPk(req.params.id, {
+			include: Raw_materials,
+		});
+		const order = await Orders.findAll({
+			where: { id: 189 },
+			include: {
+				model: Medicines,
+				include: Raw_materials,
+			},
+		});
+		Order_details.create({
+			quantity: 10,
+			price: 10000,
+			OrderId: 100,
+			MedicineId: 52,
+		});
+		console.log(order);
+		res.send(order[0].dataValues);
 	}
 	static async editStock(req, res) {
 		const { quantityInStock } = req.body;

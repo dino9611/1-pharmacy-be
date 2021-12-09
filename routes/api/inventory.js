@@ -7,6 +7,7 @@ const Product = require('../../controller/inventory/productInventory');
 //! private
 
 inventoryRoutes.get('/', Product.getList);
+inventoryRoutes.get('/:id', Product.getProductDetail);
 inventoryRoutes.post('/', Product.createProduct);
 inventoryRoutes.put('/:id', Product.updateInformation);
 inventoryRoutes.put('/:id/stock', Product.editStock);

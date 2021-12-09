@@ -1,7 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const mysql = require('mysql2/promise');
-const { continueSession } = require('pg/lib/sasl');
-const { NULL } = require('mysql/lib/protocol/constants/types');
 
 const db = {};
 
