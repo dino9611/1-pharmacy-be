@@ -3,7 +3,7 @@ const Users = db.Users;
 const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const { adminKey, userKey } = require('../../helpers/constants');
-const { generateSessionToken, generateForgotPasswordToken } = require('../../helpers/token');
+const { generateSessionToken, generateForgotPasswordToken, generateEmailVerificationToken } = require('../../helpers/token');
 const { transporter } = require('../../helpers/transporter');
 const handlebars = require("handlebars");
 const path = require("path");
@@ -38,7 +38,7 @@ module.exports = {
                 password: hashPassword,
             });
 
-            const token = generateSessionToken(newUserData, userKey);
+            const token = generateEmailVerificationToken(newUserData, userKey);
             newUserData.token = token;
 
             let filepath = path.resolve(__dirname, "../../template/resetPasswordEmail.html");
