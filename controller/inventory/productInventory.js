@@ -1,11 +1,8 @@
 const db = require('../../models/');
 
 const Medicines = db.Medicines;
-const Medicine_ingredients = db.Medicine_ingredients;
 const Raw_materials = db.Raw_materials;
-const Units = db.Units;
-const Orders = db.Orders;
-const Order_details = db.Order_details;
+const Medicine_ingredients = db.Medicine_ingredients;
 
 class Product {
 	static async getList(req, res) {
@@ -13,24 +10,16 @@ class Product {
 		res.json(list);
 	}
 	static async getProductDetail(req, res) {
-		const list = await Medicines.findByPk(req.params.id, {
-			include: Raw_materials,
-		});
-		const order = await Orders.findAll({
-			where: { id: 189 },
-			include: {
-				model: Medicines,
+		try {
+			const medicine = await Medicines.findOne({
+				where: { id: req.params.id },
 				include: Raw_materials,
-			},
-		});
-		Order_details.create({
-			quantity: 10,
-			price: 10000,
-			OrderId: 100,
-			MedicineId: 52,
-		});
-		console.log(order);
-		res.send(order[0].dataValues);
+			});
+
+			res.json(medicine);
+		} catch (error) {
+			res.status(500).json({ message: error });
+		}
 	}
 	static async editStock(req, res) {
 		const { quantityInStock } = req.body;
@@ -42,87 +31,69 @@ class Product {
 				where: { id: req.params.id },
 			},
 		);
-		res.send('edited');
+		res.json(data);
 	}
 	static async createProduct(req, res) {
-		//request format [{medicineInfo, materials:[{}]}]
-		let {
-			name,
-			price,
-			description,
-			image,
-			serving,
-			isDeleted,
-			materials,
-			quantityInStock, // => handle in front end
-		} = req.body;
+		//request format [{medicineInfo, materials:[{}]]
+		let input = req.body;
 
 		try {
 			let newMedicine = await Medicines.create({
-				name,
-				price,
-				description,
-				image,
-				serving,
-				isDeleted,
-				quantityInStock,
+				...input,
 			}); // insert to Medicines table
 
-			let materialList = materials.map((element) => {
-				element.MedicineId = newMedicine.dataValues.id;
-				return element;
-			}); // inserting newly create medicine id to existing object of raw material ussage
-
-			Medicine_ingredients.bulkCreate(materialList)
-				.then((data) => {
-					return Medicine_ingredients.findAll();
-				})
-				.then((data) => {
-					res.send(data);
-				})
-				.catch((err) => {
-					res.send(err);
-				}); // inserting to Medicine_ingredients
+			input.materials.forEach(async (element) => {
+				let item = await Raw_materials.findAll({
+					where: { id: element.RawMaterialId },
+				});
+				newMedicine
+					.addRaw_materials(item, {
+						through: {
+							quantity: element.quantity,
+							UnitId: element.UnitId,
+							createdAt: new Date(),
+							updatedAt: new Date(),
+						},
+					})
+					.then((data) => {
+						return Medicines.findOne({
+							where: { id: newMedicine.dataValues.id },
+							include: Raw_materials,
+						}); // fetching newly created data that has been associated with
+					})
+					.then((data) => {
+						res.json(data);
+					})
+					.catch((err) => {
+						console.log(err);
+					});
+			});
 		} catch (error) {
 			res.send(error);
 		}
 	}
 	static async updateInformation(req, res) {
-		const {
-			name,
-			price,
-			description,
-			image,
-			serving,
-			isDeleted,
-			quantityInStock,
-		} = req.body;
+		const input = req.body;
 
 		try {
 			await Medicines.update(
 				{
-					name,
-					price,
-					description,
-					image,
-					serving,
-					isDeleted,
-					quantityInStock,
+					...input,
 				},
 				{
 					where: { id: req.params.id },
 				},
 			);
+			let data = await Medicines.findOne({ where: { id: req.params.id } });
+			res.json(data);
 		} catch (error) {
 			console.log(error);
 		}
-		res.send('updated'); //get all data later
 	}
 	static async deleteStock(req, res) {
-		let { id } = req.params;
 		await Medicines.destroy({
 			where: {
-				id,
+				id: req.params.id,
 			},
 		});
 		// this is to destroy medicine

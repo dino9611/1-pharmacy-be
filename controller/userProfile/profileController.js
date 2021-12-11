@@ -1,4 +1,6 @@
-const Users = require('../../models/users');
+const db = require('../../models/index');
+
+const Users = db.Users;
 
 class Profile {
 	static async getProfile(req, res) {
@@ -7,21 +9,20 @@ class Profile {
 		res.json(data.dataValues);
 	}
 	static async editProfile(req, res) {
-		let input = req.body;
-		console.log(input);
-		let data = Users.update({ ...input }, { where: { id: req.params.id } });
+		try {
+			let input = req.body;
 
-		res.send(`update profile user id:${req.params.id}`);
+			await Users.update({ ...input }, { where: { id: req.params.id } });
+
+			let data = await Users.findOne({ where: { id: req.params.id } });
+
+			res.json({ data });
+		} catch (error) {
+			res.status(500).json({ error });
+		}
 	}
 	static async pictureHandler(req, res) {
 		res.send(`profile user id:${req.params.id}`);
-	}
-	// ! just for testing
-	static async register(req, res) {
-		let { email, username, password } = req.body;
-		console.log(email, username, password);
-		Users.create({ email, username, password });
-		res.send('created');
 	}
 }
 

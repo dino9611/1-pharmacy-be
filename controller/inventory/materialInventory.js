@@ -5,34 +5,31 @@ const Raw_materials = db.Raw_materials;
 class Material {
 	static async getList(req, res) {
 		const list = await Raw_materials.findAll();
-		res.json({ list });
+		res.json(list);
 	}
-	static async addMaterial(req, res) {
+	static async addMaterial(req, res, next) {
 		Raw_materials.create(req.body)
 			.then((data) => {
-				console.log(data);
-				res.send('added');
+				next();
 			})
-			.catch((err) => {
-				console.log(err);
+			.catch((error) => {
+				console.log(error);
 			});
 	}
 	static async updateInformation(req, res) {
-		const { name, price, bottle_quantity, quantity_per_bottle, UnitId, id } =
-			req.body;
+		const input = req.body;
 
 		Raw_materials.update(
 			{
-				name: name,
-				price: price,
-				bottle_quantity: bottle_quantity,
-				quantity_per_bottle: quantity_per_bottle,
-				UnitId,
+				...input,
 			},
 			{ where: { id: req.params.id } },
 		)
-			.then((response) => {
-				res.json(`${req.params.id}, updated`);
+			.then(() => {
+				return Raw_materials.findOne({ where: { id: req.params.id } });
+			})
+			.then((data) => {
+				res.json(data);
 			})
 			.catch((error) => {
 				console.log(error);
@@ -40,15 +37,21 @@ class Material {
 			});
 	}
 	static async updateQuantity(req, res) {
-		res.send('update stock according to quantity not bottle');
+		res.send(
+			'update stock according to quantity not bottle, later for should have feature',
+		);
 	}
 	static async deleteStock(req, res) {
-		await Raw_materials.destroy({
-			where: {
-				id: req.params.id,
-			},
-		});
-		res.send(`deleted`);
+		try {
+			await Raw_materials.destroy({
+				where: {
+					id: req.params.id,
+				},
+			});
+			res.json({ message: 'deleted' });
+		} catch (error) {
+			res.status(500).json(error);
+		}
 	}
 }
 
