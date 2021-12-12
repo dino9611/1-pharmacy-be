@@ -19,6 +19,12 @@ ON od.MedicineId = m.id
 JOIN Users u
 ON o.userId = u.id `;
 
+const filterUserTransactionHistory = `ORDER BY o.createdAt DESC
+LIMIT 20;`
+
+const filterAllTransactions = `ORDER BY o.createdAt DESC
+LIMIT 50;`
+
 module.exports = {
     getUserTransactions: async (req, res) => {
         const { filter } = req.query;
@@ -26,9 +32,9 @@ module.exports = {
         try {
             const queries = [transactionQuery];
             if (filter === "ongoing") {
-                queries.push(`WHERE o.userId=${user.id} AND (o.status = 1 OR o.status = 2);`);
+                queries.push(`WHERE o.userId=${user.id} AND (o.status = 1 OR o.status = 2)`, filterUserTransactionHistory);
             } else if (filter === "past") {
-                queries.push(`WHERE o.userId=${user.id} AND (o.status = 3 OR o.status = 4);`)
+                queries.push(`WHERE o.userId=${user.id} AND (o.status = 3 OR o.status = 4)`, filterUserTransactionHistory);
             }
 
             const transactions = await sequelize.query(
@@ -47,8 +53,9 @@ module.exports = {
 
     getAllTransactions: async (req, res) => {
         try {
+            const queries = [transactionQuery, filterAllTransactions];
             const transactions = await sequelize.query(
-                transactionQuery,
+                queries.join(' '),
                 {
                     type: QueryTypes.SELECT
                 });

@@ -19,7 +19,8 @@ module.exports = {
                 ON od.MedicineId = m.id
                 JOIN Users u
                 ON o.userId = u.id
-                WHERE o.status = 3;`,
+                WHERE o.status = 3
+                ORDER BY o.createdAt DESC;`,
                 {
                     type: QueryTypes.SELECT
                 }
@@ -36,7 +37,7 @@ module.exports = {
     revenueReport: async (req, res) => {
         try {
             const transactions = await sequelize.query(
-                `SELECT o.id, o.transaction_number, o.userId AS user_account_id, CONCAT(u.firstName, ' ', u.lastName) AS user_account_name,
+                `SELECT o.id, o.createdAt, o.transaction_number, o.status AS transaction_status, o.userId AS user_account_id, CONCAT(u.firstName, ' ', u.lastName) AS user_account_name,
                 od.MedicineId, m.name AS medicine_ordered, od.quantity AS quantity_ordered, od.price AS medicine_selling_price,
                 rm.name AS raw_material_name, mi.quantity AS raw_material_qty_in_medicine, unit.name AS unit, 
                 rm.price AS raw_material_price, rm.quantity_per_bottle AS raw_material_qty_per_bottle, unit2.name AS unit,
@@ -58,7 +59,8 @@ module.exports = {
                 ON mi.RawMaterialId = rm.id
                 JOIN Units unit2
                 ON rm.UnitId = unit2.id
-                WHERE o.status = 3;`,
+                WHERE o.status = 3
+                ORDER BY o.createdAt DESC;`,
                 {
                     type: QueryTypes.SELECT
                 }
