@@ -15,7 +15,7 @@ module.exports = {
             const { firstName, lastName, username, email, password } = req.body;
             
             if (!(firstName && lastName && username && email && password)) {
-                res.status(400).send("BAD REQUEST: All input is required!");
+                throw { message: "All input is required" };
             };
 
             const userAlreadyExists = await Users.findOne({
@@ -25,7 +25,7 @@ module.exports = {
             });
 
             if(userAlreadyExists){
-                return res.status(409).send("CONFLICT: User already exists. Please go to login or input a different user!");
+                throw { message: "User already exists. Please go to login or input a different user" };
             }
 
             const hashPassword = await bcrypt.hash(password, 10);
@@ -59,7 +59,7 @@ module.exports = {
             res.status(201).send(newUserData);
         } catch (err) {
             console.error(err.message);
-            return res.status(500).send({ message: "Server error" });
+            return res.status(500).send({ message: err.message || "Server error" });
         }
     },
 
@@ -68,7 +68,7 @@ module.exports = {
             const { usernameOrEmail, password } = req.body;
     
             if (!(usernameOrEmail && password)) {
-                return res.status(400).send("BAD REQUEST: All input is required!");
+                throw { message: "All input is required" };
             };
     
             const userData = await Users.findOne({
@@ -81,11 +81,11 @@ module.exports = {
                 const token = generateSessionToken(userData, userData.isAdmin? true === adminKey : userKey)
                 return res.status(200).send(token);
             };
-
-            res.status(401).send("UNAUTHORIZED: Invalid Credentials");
+            
+            throw { message: "Username or password is incorrect" };
         } catch (err) {
             console.error(err.message);
-            return res.status(500).send({ message: "Server error" });
+            return res.status(500).send({ message: err.message || "Server error" });
         }
     },
 
@@ -94,7 +94,7 @@ module.exports = {
             const { email } = req.body;
 
             if (!email){
-                return res.status(400).send("BAD REQUEST: Email is required!");
+                throw { message: "Email is required" };
             };
 
             const userData = await Users.findOne({ where: { email } });
@@ -130,7 +130,7 @@ module.exports = {
             const { id } = req.user;
 
             if(!newPassword){
-                return res.status(400).send("BAD REQUEST: New password is required!");
+                throw { message: "New password is required"};
             };
 
             const hashPassword = await bcrypt.hash(newPassword, 10);
@@ -140,7 +140,7 @@ module.exports = {
                 { where: { id } }
             );
 
-            return res.status(200).send({ message: "Reset password successful!" }); 
+            return res.status(200).send({ message: "Reset password successful" }); 
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
@@ -156,7 +156,7 @@ module.exports = {
                 { where: { id } }
             );
 
-            return res.status(200).send({ message: "Account verification is successful!" }); 
+            return res.status(200).send({ message: "Account verification is successful" }); 
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
