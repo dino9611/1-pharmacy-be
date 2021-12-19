@@ -90,8 +90,7 @@ module.exports = {
     ordersByGender: async (req, res) => {
         try {
             const datas = await sequelize.query(
-                `SELECT u.gender AS gender, COUNT(u.gender) AS total_orders, 
-                ROUND(COUNT(u.gender) * 100.0 / sum(count(u.gender)) over()) AS total_orders_percentage
+                `SELECT u.gender AS gender, COUNT(u.gender) AS total_orders
                 FROM Orders o
                 JOIN Users u
                 ON o.UserId = u.id
