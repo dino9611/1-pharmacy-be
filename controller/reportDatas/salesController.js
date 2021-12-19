@@ -33,7 +33,7 @@ module.exports = {
     medicineOrders: async (req, res) => {
         try {
             const datas = await sequelize.query(
-                `SELECT m.name AS medicine, COUNT(m.name) AS total_medicine_orders
+                `SELECT m.name AS medicine, SUM(od.quantity) AS total_medicine_orders
                 FROM Orders o
                 JOIN Order_details od
                 ON od.OrderId = o.id
@@ -41,7 +41,7 @@ module.exports = {
                 ON od.MedicineId = m.id
                 WHERE o.status = 3 and YEAR(o.createdAt) = 2021
                 GROUP BY m.name
-                ORDER BY total_medicine_orders DESC
+                ORDER BY SUM(od.quantity) DESC
                 LIMIT 10;`,
                 {
                     type: QueryTypes.SELECT
