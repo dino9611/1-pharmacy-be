@@ -56,6 +56,7 @@ module.exports = {
                 html: htmlToEmail,
             });
 
+            console.log(newUserData);
             res.status(201).send(newUserData);
         } catch (err) {
             console.error(err.message);
@@ -79,6 +80,7 @@ module.exports = {
     
             if((userData) && (await bcrypt.compare(password, userData.password))){
                 const token = generateSessionToken(userData, userData.isAdmin? true === adminKey : userKey)
+                console.log(userData);
                 return res.status(200).send(token);
             };
             
@@ -117,6 +119,8 @@ module.exports = {
                   html: htmlToEmail,
                 });
             };
+
+            console.log(userData);
             return res.sendStatus(204);
         } catch (err) {
             console.error(err.message);

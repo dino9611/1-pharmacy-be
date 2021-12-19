@@ -44,6 +44,7 @@ module.exports = {
                 }
             );
 
+            console.log(transactions);
             return res.status(200).json(transactions);
         } catch (err) {
             console.error(err.message);
@@ -58,8 +59,10 @@ module.exports = {
                 queries.join(' '),
                 {
                     type: QueryTypes.SELECT
-                });
+                }
+            );
 
+            console.log(transactions);
             res.status(200).send(transactions)
         } catch (err) {
             console.error(err.message);
