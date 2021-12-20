@@ -70,10 +70,10 @@ module.exports = {
             );
 
             const statusText = {
-                1: 'Order is Under Admin Review',
-                2: 'Order is Accepted and Processed',
-                3: 'Order is Successfully Delivered and Finished',
-                4: 'Order is Failed or Declined'
+                1: "1 = Order is Under Admin Review",
+                2: "2 = Order is Accepted and Processed",
+                3: "3 = Order is Successfully Delivered and Finished",
+                4: "4 = Order is Failed or Declined"
             }
 
             console.log(datas);

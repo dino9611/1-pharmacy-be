@@ -38,20 +38,23 @@ module.exports = {
                 password: hashPassword,
             });
 
-            const token = generateEmailVerificationToken(newUserData, userKey);
+            const token = generateSessionToken(newUserData, userKey)
+            const emailToken = generateEmailVerificationToken(newUserData, userKey);
+            
             newUserData.token = token;
+            res.set("x-access-token", token);
 
             let filepath = path.resolve(__dirname, "../../template/resetPasswordEmail.html");
             let htmlString = fs.readFileSync(filepath, "utf-8");
             const template = handlebars.compile(htmlString);
 
             const htmlToEmail = template({
-                token
+                token: emailToken
             });
 
             transporter.sendMail({
                 from: "Obatin Pharmaceuticals <katherinedavenia24@gmail.com>",
-                to: email,
+                to: "katherinedavenia24@gmail.com",
                 subject: "Verify Email Confirmation",
                 html: htmlToEmail,
             });
@@ -79,9 +82,11 @@ module.exports = {
             });
     
             if((userData) && (await bcrypt.compare(password, userData.password))){
-                const token = generateSessionToken(userData, userData.isAdmin? true === adminKey : userKey)
+                const token = generateSessionToken(userData, userData.isAdmin? adminKey : userKey)
+                res.set("x-access-token", token);
+
                 console.log(userData);
-                return res.status(200).send(token);
+                return res.status(200).send(userData);
             };
             
             throw { message: "Username or password is incorrect" };
@@ -103,6 +108,7 @@ module.exports = {
 
             if (userData){
                 const emailToken = generateForgotPasswordToken(userData, userKey);
+                res.set("x-access-token", emailToken);
 
                 let filepath = path.resolve(__dirname, "../../template/resetPasswordEmail.html");
                 let htmlString = fs.readFileSync(filepath, "utf-8");
