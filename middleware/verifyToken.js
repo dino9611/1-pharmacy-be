@@ -6,12 +6,12 @@ const verifyTokenAccess = (key, isCheckingAdmin) => {
         const token = req.headers["authorization"];
         
         if (!token) {
-            return res.status(400).send({ message: "BAD REQUEST: Authorization header is required!" });
+            return res.status(400).send({ message: "Authorization header is required!" });
         };
         
         jwt.verify(token, key, async (err, decoded) => {
             if (err) {
-                return res.status(401).send({ message: "UNAUTHORIZED: You are not authorized!" });
+                return res.status(401).send({ message: "You are not authorized!" });
             };
 
             req.user = decoded;
@@ -19,7 +19,7 @@ const verifyTokenAccess = (key, isCheckingAdmin) => {
             if(decoded.isAdmin === isCheckingAdmin){
                 return next();
             } else {
-                return res.status(403).send({ message: "FORBIDDEN: You do not have access!" });
+                return res.status(403).send({ message: "You do not have access!" });
             };
         });
     };
