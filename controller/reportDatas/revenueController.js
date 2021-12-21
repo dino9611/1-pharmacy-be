@@ -3,7 +3,7 @@ const { QueryTypes } = require('sequelize');
 const { sequelize } = require('../../config');
 
 module.exports = {
-    revenueReport: async (req, res) => {
+    totalRevenue: async (req, res) => {
         try {
             const datas = await sequelize.query(
                 `SELECT o.id, o.createdAt, o.transaction_number, o.status AS transaction_status, o.userId AS user_account_id, CONCAT(u.firstName, ' ', u.lastName) AS user_account_name,
@@ -41,5 +41,43 @@ module.exports = {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
         }
-    }
+    },
+
+    totalOrders: async (req, res) => {
+        try {
+            const datas = await sequelize.query(
+                `SELECT COUNT(*) AS total_orders
+                FROM Orders
+                WHERE status = 3 AND YEAR(createdAt) = 2021;`,
+                {
+                    type: QueryTypes.SELECT
+                }
+            );
+
+            console.log(datas);
+            res.status(200).send(datas);
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
+
+    potentialRevenue: async (req, res) => {
+        try {
+            const datas = await sequelize.query(
+                `SELECT SUM(IF(isCheckout = 0, 1, 0)) AS current_carts, 
+                SUM(IF(isCheckout = 1, 1, 0)) AS current_checkout
+                FROM Carts;`,
+                {
+                    type: QueryTypes.SELECT
+                }
+            );
+
+            console.log(datas);
+            res.status(200).send(datas);
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
 };
