@@ -23,3 +23,4 @@ module.exports.generateForgotPasswordToken = (user, key) => {
     { expiresIn: "1h" }
   );
 }
+

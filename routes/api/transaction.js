@@ -1,8 +1,8 @@
 const express = require('express');
 const transactionRoutes = express.Router();
 const { getUserTransactions } = require('../../controller/reportDatas/transactionController');
-const { verifyUserToken } = require('../../middleware')
+const { verifyToken } = require('../../middleware')
 
-transactionRoutes.get('/', verifyUserToken(), getUserTransactions);
+transactionRoutes.get('/', verifyToken(), getUserTransactions);
 
 module.exports = transactionRoutes;

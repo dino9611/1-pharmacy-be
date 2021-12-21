@@ -44,7 +44,7 @@ module.exports = {
             newUserData.token = token;
             res.set("x-access-token", token);
 
-            let filepath = path.resolve(__dirname, "../../template/resetPasswordEmail.html");
+            let filepath = path.resolve(__dirname, "../../template/verifyAccountEmail.html");
             let htmlString = fs.readFileSync(filepath, "utf-8");
             const template = handlebars.compile(htmlString);
 
@@ -107,8 +107,8 @@ module.exports = {
             const userData = await Users.findOne({ where: { email } });
 
             if (userData){
+                console.log(userKey);
                 const emailToken = generateForgotPasswordToken(userData, userKey);
-                res.set("x-access-token", emailToken);
 
                 let filepath = path.resolve(__dirname, "../../template/resetPasswordEmail.html");
                 let htmlString = fs.readFileSync(filepath, "utf-8");
@@ -120,7 +120,7 @@ module.exports = {
 
                 transporter.sendMail({
                   from: "Obatin Pharmaceuticals <katherinedavenia24@gmail.com>",
-                  to: email,
+                  to: "katherinedavenia24@gmail.com",
                   subject: "Reset Password Confirmation",
                   html: htmlToEmail,
                 });

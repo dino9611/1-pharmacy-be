@@ -1,6 +1,6 @@
-const { verifyUserToken, verifyAdminToken } = require('./verifyToken');
+const { verifyToken, verifyAdminToken } = require('./verifyToken');
 
 module.exports = {
-  verifyUserToken,
+  verifyToken,
   verifyAdminToken
 };
