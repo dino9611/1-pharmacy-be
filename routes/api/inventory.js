@@ -7,17 +7,14 @@ const Product = require('../../controller/inventory/productInventory');
 //! private
 
 //@ Medicines
-inventoryRoutes.get('/', Product.getList);
+inventoryRoutes.get('/medicines', Product.getSearch);
+inventoryRoutes.get('/:page/:limit', Product.getList);
 inventoryRoutes.post('/', Product.createProduct, Product.getList);
 inventoryRoutes.get('/:id', Product.getProductDetail);
 inventoryRoutes.put('/:id', Product.updateInformation);
-inventoryRoutes.put('/:id/stock', Product.editStock);
+inventoryRoutes.put('/stock/:id', Product.editStock);
 inventoryRoutes.delete('/:id', Product.deleteStock);
+
 //@ Raw materials
-inventoryRoutes.get('/material', Material.getList);
-inventoryRoutes.post('/material', Material.addMaterial, Material.getList);
-inventoryRoutes.put('/material/:id', Material.updateInformation);
-inventoryRoutes.put('/material/:id/:q', Material.updateQuantity);
-inventoryRoutes.delete('/material/:id', Material.deleteStock);
 
 module.exports = inventoryRoutes;

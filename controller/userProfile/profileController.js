@@ -8,6 +8,7 @@ class Profile {
 		console.log(data);
 		res.json(data.dataValues);
 	}
+
 	static async editProfile(req, res) {
 		try {
 			let input = req.body;

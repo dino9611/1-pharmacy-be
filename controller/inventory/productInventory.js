@@ -1,13 +1,38 @@
 const db = require('../../models/');
-
+const { Op } = require('sequelize');
 const Medicines = db.Medicines;
 const Raw_materials = db.Raw_materials;
 const Medicine_ingredients = db.Medicine_ingredients;
 
 class Product {
 	static async getList(req, res) {
-		const list = await Medicines.findAll();
-		res.json(list);
+		let page = +req.params.page;
+		let limit = +req.params.limit;
+		let offset = limit * (page - 1);
+		const list = await Medicines.findAll({
+			limit: limit,
+			offset: offset,
+		});
+		const allData = await Medicines.findAll();
+		let pageLimit = allData.length;
+		res.json({ list, pageLimit });
+	}
+
+	static async getSearch(req, res) {
+		try {
+			const list = await Medicines.findAll({
+				where: {
+					name: {
+						[Op.like]: `${req.query.name}%`,
+					}, // => where name like %? wild card sql
+				},
+				limit: 10,
+			});
+			res.json(list);
+		} catch (error) {
+			console.log(error);
+			res.status(500).json({ error });
+		}
 	}
 	static async getProductDetail(req, res) {
 		try {
@@ -36,7 +61,7 @@ class Product {
 	static async createProduct(req, res) {
 		//request format [{medicineInfo, materials:[{}]]
 		let input = req.body;
-
+		console.log(req.body);
 		try {
 			let newMedicine = await Medicines.create({
 				...input,
@@ -44,13 +69,13 @@ class Product {
 
 			input.materials.forEach(async (element) => {
 				let item = await Raw_materials.findAll({
-					where: { id: element.RawMaterialId },
+					where: { name: element.name },
 				});
 				newMedicine
 					.addRaw_materials(item, {
 						through: {
-							quantity: element.quantity,
-							UnitId: element.UnitId,
+							quantity: +element.quantity,
+							UnitId: +element.UnitId,
 							createdAt: new Date(),
 							updatedAt: new Date(),
 						},
@@ -62,7 +87,8 @@ class Product {
 						}); // fetching newly created data that has been associated with
 					})
 					.then((data) => {
-						res.json(data);
+						console.log(data);
+						res.send(data);
 					})
 					.catch((err) => {
 						console.log(err);
