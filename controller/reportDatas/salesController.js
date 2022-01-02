@@ -4,6 +4,8 @@ const { sequelize } = require('../../config');
 
 module.exports = {
     monthlySales: async (req, res) => {
+        const { year } = req.query;
+
         try {
             const datas = await sequelize.query(
                 `SELECT MONTH(o.createdAt) AS monthId, MONTHNAME(o.createdAt) AS month, YEAR(o.createdAt) AS year,
@@ -11,7 +13,7 @@ module.exports = {
                 FROM Order_details od
                 JOIN Orders o
                 ON od.OrderId = o.id
-                WHERE o.status = 3 and YEAR(o.createdAt) = 2021
+                WHERE o.status = 3 and YEAR(o.createdAt) = ${year}
                 GROUP BY MONTH(o.createdAt), MONTHNAME(o.createdAt), YEAR(o.createdAt)
                 ORDER BY MONTH(o.createdAt);`,
                 {
@@ -31,6 +33,8 @@ module.exports = {
     },
 
     medicineOrders: async (req, res) => {
+        const { year } = req.query;
+
         try {
             const datas = await sequelize.query(
                 `SELECT m.name AS medicine, SUM(od.quantity) AS total_medicine_orders
@@ -39,7 +43,7 @@ module.exports = {
                 ON od.OrderId = o.id
                 JOIN Medicines m
                 ON od.MedicineId = m.id
-                WHERE o.status = 3 and YEAR(o.createdAt) = 2021
+                WHERE o.status = 3 and YEAR(o.createdAt) = ${year}
                 GROUP BY m.name
                 ORDER BY SUM(od.quantity) DESC
                 LIMIT 10;`,
@@ -57,11 +61,13 @@ module.exports = {
     },
 
     currentOrdersStatus: async (req, res) => {
+        const { year } = req.query;
+
         try {
             const datas = await sequelize.query(
                 `SELECT status, COUNT(status) AS current_orders
                 FROM Orders
-                WHERE YEAR(createdAt) = 2021
+                WHERE YEAR(createdAt) = ${year}
                 GROUP BY status
                 ORDER BY status ASC;`,
                 {
@@ -73,7 +79,7 @@ module.exports = {
                 1: "1 - Order is Under Admin Review",
                 2: "2 - Order is Accepted and Processed",
                 3: "3 - Order is Delivered and Finished",
-                4: "4 - Order is Failed or Declined"
+                4: "4 - Order is Cancelled or Failed"
             }
 
             console.log(datas);
@@ -88,13 +94,15 @@ module.exports = {
     },
 
     ordersByGender: async (req, res) => {
+        const { year } = req.query;
+
         try {
             const datas = await sequelize.query(
-                `SELECT u.gender AS gender, COUNT(u.gender) AS total_orders
+                `SELECT u.gender, COUNT(u.gender) AS total_orders
                 FROM Orders o
                 JOIN Users u
                 ON o.UserId = u.id
-                WHERE o.status = 3 AND YEAR(o.createdAt) = 2021
+                WHERE o.status = 3 AND YEAR(o.createdAt) = ${year}
                 GROUP BY u.gender
                 ORDER BY total_orders DESC;`,
                 {
@@ -111,6 +119,8 @@ module.exports = {
     },
 
     ordersByAgeRange: async (req, res) => {
+        const { year } = req.query;
+
         try {
             const datas = await sequelize.query(
                 `SELECT TIMESTAMPDIFF (YEAR, u.birthdate, CURDATE()) AS age,
@@ -118,7 +128,7 @@ module.exports = {
                 FROM Orders o
                 JOIN Users u
                 ON o.UserId = u.id
-                WHERE o.status = 3 AND YEAR(o.createdAt) = 2021
+                WHERE o.status = 3 AND YEAR(o.createdAt) = ${year}
                 GROUP BY age
                 ORDER BY age ASC;`,
                 {

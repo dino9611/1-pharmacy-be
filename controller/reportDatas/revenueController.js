@@ -48,7 +48,7 @@ module.exports = {
             const datas = await sequelize.query(
                 `SELECT COUNT(*) AS total_orders
                 FROM Orders
-                WHERE status = 3 AND YEAR(createdAt) = 2021;`,
+                WHERE status = 3`,
                 {
                     type: QueryTypes.SELECT
                 }

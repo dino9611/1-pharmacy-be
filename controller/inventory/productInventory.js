@@ -1,4 +1,4 @@
-const db = require('../../models/');
+const db = require('../../models');
 
 const Medicines = db.Medicines;
 const Medicine_ingredients = db.Medicine_ingredients;

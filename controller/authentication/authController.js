@@ -39,7 +39,11 @@ module.exports = {
             });
 
             const token = generateSessionToken(newUserData, userKey)
-            const emailToken = generateEmailVerificationToken(newUserData, userKey);
+            const dataEmailToken = {
+                ...newUserData,
+                created: new Date().getTime()
+            };
+            const emailToken = generateEmailVerificationToken(dataEmailToken, userKey);
             
             newUserData.token = token;
             res.set("x-access-token", token);
@@ -159,7 +163,7 @@ module.exports = {
 
     verifyAccount: async (req, res) => {
         try {
-            const { id } = req.user;
+            const { id, created } = req.user;
 
             await Users.update(
                 { isVerified: true },
