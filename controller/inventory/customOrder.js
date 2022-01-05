@@ -1,53 +1,34 @@
+const { sequelize } = require('../../config');
 const db = require('../../models/');
 
 const Medicines = db.Medicines;
-const Medicine_ingredients = db.Medicine_ingredients;
-const Raw_materials = db.Raw_materials;
-const Units = db.Units;
+const Prescriptions = db.Prescriptions;
 
 class CustomOrder {
-	static async getPrescriptionList(req, res) {
-		const list = await Medicines.findAll();
-		res.json(list);
-	}
-	static async editStock(req, res) {
-		const { id, quantityInStock } = req.body;
-
-		//handle calculation on frontend
-		let data = await Medicines.update(
-			{ quantityInStock },
-			{
-				where: { id },
-			},
-		);
-		res.send(data);
+	static async getPrescriptions(req, res) {
+		let page = +req.params.page;
+		let limit = +req.params.limit;
+		let offset = limit * (page - 1);
+		try {
+			let prescriptionList = await Prescriptions.findAll({
+				limit: limit,
+				offset: offset,
+			});
+			const allData = await Medicines.findAll();
+			let pageLimit = allData.length;
+			res.json({ prescriptionList, pageLimit });
+		} catch (error) {
+			console.log(error);
+			res.status(500).send({ error });
+		}
 	}
 	static async createPrescription(req, res) {
-		//request format [{medicineInfo, materials:[{},{}]
 		let input = req.body;
-
-		let image, PrescriptionId;
-
 		try {
-			let newMedicine = await Medicines.create({
+			let newPrescription = await Prescriptions.create({
 				...input,
 			}); // insert to Medicines table
-
-			let materialList = materials.map((element) => {
-				element.MedicineId = newMedicine.dataValues.id;
-				return element;
-			}); // inserting newly create medicine id to existing object of raw material ussage
-
-			Medicine_ingredients.bulkCreate(materialList)
-				.then((data) => {
-					return Medicine_ingredients.findAll();
-				})
-				.then((data) => {
-					res.send(data);
-				})
-				.catch((err) => {
-					res.send(err);
-				}); // inserting to Medicine_ingredients
+			res.send(newPrescription);
 		} catch (error) {
 			res.send(error);
 		}

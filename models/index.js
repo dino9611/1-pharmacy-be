@@ -76,11 +76,11 @@ db.Medicines.belongsToMany(db.Raw_materials, {
 });
 db.Users.hasMany(db.Prescriptions);
 db.Users.hasMany(db.Orders);
-db.Prescriptions.hasMany(db.Medicines);
+db.Prescriptions.hasOne(db.Medicines);
 db.Shipping_methods.hasMany(db.Orders);
 db.Payment_methods.hasMany(db.Orders);
 
-sequelize.sync({ alter: true });
+sequelize.sync();
 
 //fix bug for sync
 module.exports = db;
