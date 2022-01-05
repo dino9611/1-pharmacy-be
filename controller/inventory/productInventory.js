@@ -116,6 +116,19 @@ class Product {
 			console.log(error);
 		}
 	}
+
+	static async getMedicineDetailInformation(req, res) {
+		const id = req.params.id;
+		try {
+			const data = await Medicines.findOne({
+				where: { id },
+				include: Raw_materials,
+			});
+			res.send(data);
+		} catch (error) {
+			console.log(error);
+		}
+	}
 	static async deleteStock(req, res) {
 		await Medicines.destroy({
 			where: {

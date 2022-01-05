@@ -12,13 +12,14 @@ class Profile {
 	static async editProfile(req, res) {
 		try {
 			let input = req.body;
-
+			console.log(input);
 			await Users.update({ ...input }, { where: { id: req.params.id } });
 
 			let data = await Users.findOne({ where: { id: req.params.id } });
 
 			res.json({ data });
 		} catch (error) {
+			console.log(error);
 			res.status(500).json({ error });
 		}
 	}

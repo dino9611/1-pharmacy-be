@@ -33,6 +33,19 @@ class Material {
 			res.status(500).json(error);
 		}
 	}
+	static async getById(req, res) {
+		try {
+			const data = await Raw_materials.findOne({
+				where: {
+					id: req.params.id,
+				},
+			});
+			res.json(data);
+		} catch (error) {
+			console.log(error);
+			res.status(500).json(error);
+		}
+	}
 	static async addMaterial(req, res) {
 		Raw_materials.create(req.body)
 			.then((data) => {
