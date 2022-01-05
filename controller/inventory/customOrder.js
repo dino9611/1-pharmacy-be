@@ -24,27 +24,13 @@ class CustomOrder {
 	}
 	static async createPrescription(req, res) {
 		//request format [{medicineInfo, materials:[{},{}]
-		let {
-			name,
-			price,
-			description,
-			serving,
-			isDeleted,
-			materials,
-			quantityInStock,
-		} = req.body;
+		let input = req.body;
 
 		let image, PrescriptionId;
 
 		try {
 			let newMedicine = await Medicines.create({
-				name,
-				price,
-				description,
-				image,
-				serving,
-				isDeleted,
-				quantityInStock,
+				...input,
 			}); // insert to Medicines table
 
 			let materialList = materials.map((element) => {
@@ -67,19 +53,10 @@ class CustomOrder {
 		}
 	}
 	static async updatePrescriptionInformation(req, res) {
-		const {
-			name,
-			price,
-			description,
-			image,
-			serving,
-			isDeleted,
-			id,
-			quantityInStock,
-		} = req.body;
+		const input = req.body;
 
 		await Medicines.update(
-			{ name, price, description, image, serving, isDeleted, quantityInStock },
+			{ ...input },
 			{
 				where: { id },
 			},
