@@ -3,6 +3,7 @@ const db = require('../../models/');
 
 const Medicines = db.Medicines;
 const Prescriptions = db.Prescriptions;
+const Raw_materials = db.Raw_materials;
 
 class CustomOrder {
 	static async getPrescriptions(req, res) {
@@ -33,26 +34,51 @@ class CustomOrder {
 			res.send(error);
 		}
 	}
-	static async updatePrescriptionInformation(req, res) {
-		const input = req.body;
+	static async createOrder(req, res) {
+		//request format [{medicineInfo, materials:[{}]]
+		let input = req.body;
+		console.log(req.body);
+		try {
+			let newMedicine = await Medicines.create({
+				...input,
+			});
+			/**
+			 * insert to medicine table with only
+			 * prescription id
+			 * image
+			 * serving
+			 * medicine ingredients
+			 */
 
-		await Medicines.update(
-			{ ...input },
-			{
-				where: { id },
-			},
-		);
-		res.send('updated'); //get all data later
-	}
-	static async deletePrescription(req, res) {
-		let { id } = req.params;
-		await Medicines.destroy({
-			where: {
-				id,
-			},
-		});
-		// this is to destroy medicine
-		res.send(`deleted`);
+			input.materials.forEach(async (element) => {
+				let item = await Raw_materials.findAll({
+					where: { name: element.name },
+				});
+				newMedicine
+					.addRaw_materials(item, {
+						through: {
+							quantity: +element.quantity,
+							UnitId: +element.UnitId,
+							createdAt: new Date(),
+							updatedAt: new Date(),
+						},
+					})
+					.then((data) => {
+						return Medicines.findOne({
+							where: { id: newMedicine.dataValues.id },
+							include: Raw_materials,
+						}); // fetching newly created data that has been associated with
+					})
+					.then((data) => {
+						res.send(data);
+					})
+					.catch((err) => {
+						console.log(err);
+					});
+			});
+		} catch (error) {
+			res.send(error);
+		}
 	}
 }
 
