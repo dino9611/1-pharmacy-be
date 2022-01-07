@@ -62,12 +62,13 @@ module.exports = {
 
     currentOrdersStatus: async (req, res) => {
         const { year } = req.query;
+        const specifiedYear = (year) ? `WHERE YEAR(createdAt) = ${year}` : ""
 
         try {
             const datas = await sequelize.query(
                 `SELECT status, COUNT(status) AS current_orders
                 FROM Orders
-                WHERE YEAR(createdAt) = ${year}
+                ${specifiedYear}
                 GROUP BY status
                 ORDER BY status ASC;`,
                 {
@@ -76,10 +77,10 @@ module.exports = {
             );
 
             const statusText = {
-                1: "1 - Order is Under Admin Review",
-                2: "2 - Order is Accepted and Processed",
-                3: "3 - Order is Delivered and Finished",
-                4: "4 - Order is Cancelled or Failed"
+                1: "Orders Awaiting for Admin Review",
+                2: "Accepted and Ongoing Orders",
+                3: "Successfully Delivered Orders",
+                4: "Cancelled or Failed Orders"
             }
 
             console.log(datas);
