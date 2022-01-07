@@ -1,6 +1,32 @@
 const db = require('../../models');
+const Orders = db.Orders;
 const { QueryTypes } = require('sequelize');
 const { sequelize } = require('../../config');
+
+const orderHistoryQuery = `SELECT o.transaction_number, DATE_FORMAT(o.createdAt, "%d %M %Y") AS createdAt,
+o.shipping_name AS recipent_name, o.shipping_phone_number AS recipent_phone_number, 
+o.shipping_address, sm.name AS shipping_method, sm.price AS shipping_cost,
+SUM(od.quantity * od.price) AS total_payment
+FROM Users u
+JOIN Orders o
+ON o.UserId = u.id
+JOIN Order_details od
+ON od.OrderId = o.id
+JOIN Shipping_methods sm
+ON o.ShippingMethodId = sm.id`;
+// ^ jangan lupa tambahin: custom prescription image
+
+const orderDetailsQuery = `SELECT m.image AS medicine_image, m.name AS medicine_name, od.quantity, od.price, 
+o.payment_image_proof, (od.quantity * od.price) AS total_price
+FROM Users u
+JOIN Orders o
+ON o.UserId = u.id
+JOIN Order_details od
+ON od.OrderId = o.id
+JOIN Shipping_methods sm
+ON o.ShippingMethodId = sm.id
+JOIN Medicines m
+ON od.MedicineId = m.id`;
 
 module.exports = {
     getUserDatas: async (req, res) => {
@@ -46,8 +72,8 @@ module.exports = {
     },
 
     getUserDetails: async (req, res) => {
+        const { id } = req.query;           
         try {
-            const { id } = req.query;           
 
             const datas = await sequelize.query(
                 `SELECT gender, DATE_FORMAT(birthdate, "%d %M %Y") AS birthdate, address, isVerified
@@ -77,22 +103,51 @@ module.exports = {
     },
 
     getOrderHistory: async (req, res) => {
+        const { id, status, filter, transaction_number } = req.query;
+
         try {
-            const { id, status } = req.query;
+            const queries = [orderHistoryQuery];
+
+            if(filter === "orderHistory"){
+                queries.push(`WHERE u.id = ${id} and o.status = ${status} GROUP BY o.id;`);
+            }else if(filter === "orderRequest"){
+                queries.push(`WHERE o.status = ${status} GROUP BY o.id ORDER BY o.createdAt DESC;`);
+            }else if(filter === "userDetails"){
+                queries.push(`WHERE o.status = ${status} AND o.transaction_number = ${transaction_number} GROUP BY o.id;`)
+            }
 
             const datas = await sequelize.query(
-                `SELECT o.transaction_number, DATE_FORMAT(o.createdAt, "%d %M %Y") AS createdAt,
-                o.shipping_name AS recipent_name, o.shipping_phone_number AS recipent_phone_number, 
-                o.shipping_address, sm.name AS shipping_method, sm.price AS shipping_cost
-                FROM Users u
-                JOIN Orders o
-                ON o.UserId = u.id
-                JOIN Order_details od
-                ON od.OrderId = o.id
-                JOIN Shipping_methods sm
-                ON o.ShippingMethodId = sm.id
-                WHERE u.id = ${id} and o.status = ${status}
-                GROUP BY o.id;`,
+                queries.join(' '),
+                {
+                    type: QueryTypes.SELECT
+                }
+            );
+
+            console.log(datas);
+            res.status(200).send(datas.map(data => ({
+                ...data,
+                total_payment: parseInt(data.total_payment)
+            })));
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
+
+    getOrderDetails: async (req, res) => {
+        const { id, status, filter, transaction_number } = req.query;
+
+        try {
+            const queries = [orderDetailsQuery];
+
+            if(filter === "orderHistory"){
+                queries.push(`WHERE u.id = ${id} and o.status = ${status};`);
+            }else if(filter === "orderRequest"){
+                queries.push(`WHERE o.status = ${status} AND o.transaction_number = ${transaction_number} ORDER BY o.createdAt DESC;`);
+            }
+
+            const datas = await sequelize.query(
+                queries.join(' '),
                 {
                     type: QueryTypes.SELECT
                 }
@@ -106,34 +161,20 @@ module.exports = {
         }
     },
 
-    getOrderDetails: async (req, res) => {
+    changeOrderStatus: async (req, res) => {
+        const { transaction_number, newStatus } = req.query;
+        
         try {
-            const { id, status } = req.query;
-
-            const datas = await sequelize.query(
-                `SELECT m.image AS medicine_image, m.name AS medicine_name, od.quantity, od.price, 
-                o.payment_image_proof, (od.quantity * od.price) AS total_price
-                FROM Users u
-                JOIN Orders o
-                ON o.UserId = u.id
-                JOIN Order_details od
-                ON od.OrderId = o.id
-                JOIN Shipping_methods sm
-                ON o.ShippingMethodId = sm.id
-                JOIN Medicines m
-                ON od.MedicineId = m.id
-                WHERE u.id = ${id} AND o.status = ${status};`,
-                {
-                    type: QueryTypes.SELECT
-                }
+            await Orders.update(
+                { status: newStatus },
+                { where: { transaction_number } }
             );
 
-            console.log(datas);
-            res.status(200).send(datas);
+            res.status(200).send({ message: "Order status is changed" }); 
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
         }
-    }
+    },
 };
 

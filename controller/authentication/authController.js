@@ -163,7 +163,7 @@ module.exports = {
 
     verifyAccount: async (req, res) => {
         try {
-            const { id, created } = req.user;
+            const { id } = req.user;
 
             await Users.update(
                 { isVerified: true },
@@ -176,9 +176,5 @@ module.exports = {
             return res.status(500).send({ message: "Server error" });
         }
     },
-
-    dashboard: async (req, res) => {
-        res.status(200).json({ message: "tes doanggg oke"})
-    }
 };
 
