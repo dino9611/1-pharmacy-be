@@ -15,7 +15,7 @@ class CustomOrder {
 				limit: limit,
 				offset: offset,
 			});
-			const allData = await Medicines.findAll();
+			const allData = await Prescriptions.findAll();
 			let pageLimit = allData.length;
 			res.json({ prescriptionList, pageLimit });
 		} catch (error) {
