@@ -17,7 +17,7 @@ ON o.ShippingMethodId = sm.id`;
 // ^ jangan lupa tambahin: custom prescription image
 
 const orderDetailsQuery = `SELECT m.image AS medicine_image, m.name AS medicine_name, od.quantity, od.price, 
-o.payment_image_proof, (od.quantity * od.price) AS total_price
+sm.name AS shipping_method, sm.price AS shipping_cost, o.payment_image_proof, (od.quantity * od.price) AS total_price
 FROM Users u
 JOIN Orders o
 ON o.UserId = u.id

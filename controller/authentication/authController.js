@@ -46,7 +46,7 @@ module.exports = {
             const emailToken = generateEmailVerificationToken(dataEmailToken, userKey);
             
             newUserData.token = token;
-            res.set("x-access-token", token);
+            // res.set("x-access-token", token);
 
             let filepath = path.resolve(__dirname, "../../template/verifyAccountEmail.html");
             let htmlString = fs.readFileSync(filepath, "utf-8");
@@ -87,10 +87,13 @@ module.exports = {
     
             if((userData) && (await bcrypt.compare(password, userData.password))){
                 const token = generateSessionToken(userData, userData.isAdmin? adminKey : userKey)
-                res.set("x-access-token", token);
+                userData.token = token
+                // res.set("x-access-token", token);
 
-                console.log(userData);
-                return res.status(200).send(userData);
+                return res.status(200).send({
+                    ...userData.dataValues,
+                    token,
+                });
             };
             
             throw { message: "Username or password is incorrect" };
@@ -119,14 +122,14 @@ module.exports = {
                 const template = handlebars.compile(htmlString);
 
                 const htmlToEmail = template({
-                  token: emailToken
+                    token: emailToken
                 });
 
                 transporter.sendMail({
-                  from: "Obatin Pharmaceuticals <katherinedavenia24@gmail.com>",
-                  to: "katherinedavenia24@gmail.com",
-                  subject: "Reset Password Confirmation",
-                  html: htmlToEmail,
+                    from: "Obatin Pharmaceuticals <katherinedavenia24@gmail.com>",
+                    to: "katherinedavenia24@gmail.com",
+                    subject: "Reset Password Confirmation",
+                    html: htmlToEmail,
                 });
             };
 
@@ -176,5 +179,18 @@ module.exports = {
             return res.status(500).send({ message: "Server error" });
         }
     },
+
+    keepLogin: async (req, res) => {
+        const { id } = req.user;
+        const conn = await mysqldb.promise().getConnection();
+
+        try {
+          
+        } catch (error) {
+            conn.release();
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+      },
 };
 

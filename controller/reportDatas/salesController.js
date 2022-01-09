@@ -8,12 +8,12 @@ module.exports = {
 
         try {
             const datas = await sequelize.query(
-                `SELECT MONTH(o.createdAt) AS monthId, MONTHNAME(o.createdAt) AS month, YEAR(o.createdAt) AS year,
-                SUM(od.quantity * od.price) AS total_payment
+                `SELECT MONTHNAME(o.createdAt) AS month, YEAR(o.createdAt) AS year,
+                SUM(od.quantity * od.price) AS total_sales
                 FROM Order_details od
                 JOIN Orders o
                 ON od.OrderId = o.id
-                WHERE o.status = 3 and YEAR(o.createdAt) = ${year}
+                WHERE YEAR(o.createdAt) = ${year} AND o.status = 3
                 GROUP BY MONTH(o.createdAt), MONTHNAME(o.createdAt), YEAR(o.createdAt)
                 ORDER BY MONTH(o.createdAt);`,
                 {
@@ -24,7 +24,7 @@ module.exports = {
             console.log(datas);
             res.status(200).send(datas.map(data => ({
                 ...data,
-                total_payment: parseInt(data.total_payment)
+                total_sales: parseInt(data.total_sales)
             })));
         } catch (err) {
             console.error(err.message);
@@ -32,7 +32,7 @@ module.exports = {
         }
     },
 
-    medicineOrders: async (req, res) => {
+    topMedicineOrders: async (req, res) => {
         const { year } = req.query;
 
         try {
@@ -47,6 +47,36 @@ module.exports = {
                 GROUP BY m.name
                 ORDER BY SUM(od.quantity) DESC
                 LIMIT 10;`,
+                {
+                    type: QueryTypes.SELECT
+                }
+            );
+
+            console.log(datas);
+            res.status(200).send(datas);
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
+
+    topBuyers: async (req, res) => {
+        const { year, month } = req.query;
+
+        const selectedMonth = (month > 0) ? `AND MONTH(o.createdAt) = ${month}` : ""
+
+        try {
+            const datas = await sequelize.query(
+                `SELECT u.username, COUNT(o.transaction_number) AS total_orders, SUM(od.price * od.quantity) AS total_sales
+                FROM Orders o
+                JOIN Users u
+                ON o.UserId = u.id
+                JOIN Order_details od
+                ON od.OrderId = o.id
+                WHERE o.status = 3 AND YEAR(o.createdAt) = ${year} ${selectedMonth}
+                GROUP BY u.id
+                ORDER BY COUNT(o.transaction_number) DESC
+                LIMIT 5;`,
                 {
                     type: QueryTypes.SELECT
                 }
