@@ -1,27 +1,24 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const mysql = require('mysql2/promise');
 
-const db = {};
-
-async function initialize() {
-	try {
-		const connection = await mysql.createConnection({
-			host: '127.0.0.1',
-			user: process.env.MYSQL_USERNAME,
-			password: process.env.MYSQL_PASSWORD,
-		});
-
-		await Promise.all([
+mysql
+	.createConnection({
+		host: '127.0.0.1',
+		user: process.env.MYSQL_USERNAME,
+		password: process.env.MYSQL_PASSWORD,
+	})
+	.then((connection) => {
+		Promise.all([
 			connection.query(
 				`CREATE DATABASE IF NOT EXISTS \`${process.env.MYSQL_DATABASE}\`;`,
 			),
 		]);
-	} catch (error) {
-		console.log(error);
-	}
-}
+	})
+	.catch((err) => {
+		console.log(err);
+	});
 
-initialize(); // init db if no db available
+const db = {};
 const sequelize = new Sequelize(
 	process.env.MYSQL_DATABASE,
 	process.env.MYSQL_USERNAME,
@@ -37,7 +34,6 @@ const sequelize = new Sequelize(
 		},
 	},
 );
-
 sequelize.authenticate();
 
 db.Sequelize = Sequelize;
@@ -84,6 +80,7 @@ db.Prescriptions.hasMany(db.Medicines);
 db.Shipping_methods.hasMany(db.Orders);
 db.Payment_methods.hasMany(db.Orders);
 
-sequelize.sync({ force: false });
+sequelize.sync({ alter: true });
 
+//fix bug for sync
 module.exports = db;

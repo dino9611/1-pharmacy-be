@@ -5,6 +5,9 @@ const adminRoutes = require('./api/admin');
 const transactionRoutes = require('./api/transactions');
 const authRoutes= require('./api/authentication');
 const profileRoutes = require('./api/profile');
+const materialRoutes = require('./api/material');
+const transactionRoutes = require('./api/transaction')
+
 // @import router path
 
 routes.get('/', (req, res) => {
@@ -21,5 +24,7 @@ routes.use('/admin', adminRoutes);
 routes.use(transactionRoutes);
 routes.use(authRoutes);
 routes.use('/profile', profileRoutes);
+routes.use('/material', materialRoutes);
+routes.use('/transactions', transactionRoutes);
 
 module.exports = routes;
