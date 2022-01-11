@@ -3,11 +3,15 @@ const Users = db.Users;
 const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const { adminKey, userKey } = require('../../helpers/constants');
-const { generateSessionToken, generateForgotPasswordToken, generateEmailVerificationToken } = require('../../helpers/token');
+const {
+	generateSessionToken,
+	generateForgotPasswordToken,
+	generateEmailVerificationToken,
+} = require('../../helpers/token');
 const { transporter } = require('../../helpers/transporter');
-const handlebars = require("handlebars");
-const path = require("path");
-const fs = require("fs");
+const handlebars = require('handlebars');
+const path = require('path');
+const fs = require('fs');
 
 module.exports = {
     register: async (req, res) => {
@@ -193,4 +197,3 @@ module.exports = {
         }
       },
 };
-

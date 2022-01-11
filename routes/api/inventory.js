@@ -1,8 +1,7 @@
 const express = require('express');
 const inventoryRoutes = express.Router();
-const Material = require('../../controller/inventory/materialInventory');
 const Product = require('../../controller/inventory/productInventory');
-
+const CustomOrder = require('../../controller/inventory/customOrder');
 //@ admin raw material and pharmacy product routes
 //! private
 

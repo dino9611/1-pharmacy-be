@@ -20,9 +20,11 @@ routes.get('/', (req, res) => {
 //! private
 routes.use('/inventory', inventoryRoutes);
 routes.use('/admin', adminRoutes);
-routes.use(transactionRoutes);
-routes.use(authRoutes);
+routes.use('/auth', authRoutes);
 routes.use('/profile', profileRoutes);
 routes.use('/material', materialRoutes);
+routes.use('/transactions', transactionRoutes);
+routes.use('/custom', customRoutes);
+
 
 module.exports = routes;

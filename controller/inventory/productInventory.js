@@ -2,7 +2,6 @@ const db = require('../../models/');
 const { Op } = require('sequelize');
 const Medicines = db.Medicines;
 const Raw_materials = db.Raw_materials;
-const Medicine_ingredients = db.Medicine_ingredients;
 
 class Product {
 	static async getList(req, res) {

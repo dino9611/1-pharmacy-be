@@ -1,77 +1,83 @@
 const db = require('../../models/');
 
 const Medicines = db.Medicines;
-const Medicine_ingredients = db.Medicine_ingredients;
+const Prescriptions = db.Prescriptions;
 const Raw_materials = db.Raw_materials;
-const Units = db.Units;
 
 class CustomOrder {
-	static async getPrescriptionList(req, res) {
-		const list = await Medicines.findAll();
-		res.json(list);
-	}
-	static async editStock(req, res) {
-		const { id, quantityInStock } = req.body;
-
-		//handle calculation on frontend
-		let data = await Medicines.update(
-			{ quantityInStock },
-			{
-				where: { id },
-			},
-		);
-		res.send(data);
+	static async getPrescriptions(req, res) {
+		let page = +req.params.page;
+		let limit = +req.params.limit;
+		let offset = limit * (page - 1);
+		try {
+			let prescriptionList = await Prescriptions.findAll({
+				limit: limit,
+				offset: offset,
+			});
+			const allData = await Prescriptions.findAll();
+			let pageLimit = allData.length;
+			res.json({ prescriptionList, pageLimit });
+		} catch (error) {
+			console.log(error);
+			res.status(500).send({ error });
+		}
 	}
 	static async createPrescription(req, res) {
-		//request format [{medicineInfo, materials:[{},{}]
 		let input = req.body;
-
-		let image, PrescriptionId;
-
 		try {
-			let newMedicine = await Medicines.create({
+			let newPrescription = await Prescriptions.create({
 				...input,
 			}); // insert to Medicines table
-
-			let materialList = materials.map((element) => {
-				element.MedicineId = newMedicine.dataValues.id;
-				return element;
-			}); // inserting newly create medicine id to existing object of raw material ussage
-
-			Medicine_ingredients.bulkCreate(materialList)
-				.then((data) => {
-					return Medicine_ingredients.findAll();
-				})
-				.then((data) => {
-					res.send(data);
-				})
-				.catch((err) => {
-					res.send(err);
-				}); // inserting to Medicine_ingredients
+			res.send(newPrescription);
 		} catch (error) {
 			res.send(error);
 		}
 	}
-	static async updatePrescriptionInformation(req, res) {
+	static async createOrder(req, res) {
+		//request format [{medicineInfo, materials:[{}]]
 		const input = req.body;
 
-		await Medicines.update(
-			{ ...input },
-			{
-				where: { id },
-			},
-		);
-		res.send('updated'); //get all data later
-	}
-	static async deletePrescription(req, res) {
-		let { id } = req.params;
-		await Medicines.destroy({
-			where: {
-				id,
-			},
-		});
-		// this is to destroy medicine
-		res.send(`deleted`);
+		try {
+			let newMedicine = await Medicines.create({
+				...input,
+			});
+			/**
+			 * insert to medicine table with only
+			 * prescription id
+			 * image
+			 * serving
+			 * medicine ingredients
+			 */
+
+			input.materials.forEach(async (element) => {
+				let item = await Raw_materials.findAll({
+					where: { name: element.name },
+				});
+				newMedicine
+					.addRaw_materials(item, {
+						through: {
+							quantity: +element.quantity,
+							UnitId: +element.UnitId,
+							createdAt: new Date(),
+							updatedAt: new Date(),
+						},
+					})
+					.then((data) => {
+						return Medicines.findOne({
+							where: { id: newMedicine.dataValues.id },
+							include: Raw_materials,
+						}); // fetching newly created data that has been associated with
+					})
+					.then((data) => {
+						res.send(data);
+					})
+					.catch((err) => {
+						console.log(err);
+					});
+			});
+		} catch (error) {
+			res.send(error);
+		}
 	}
 }
 
