@@ -14,180 +14,186 @@ const path = require('path');
 const fs = require('fs');
 
 module.exports = {
-	register: async (req, res) => {
-		try {
-			const { firstName, lastName, username, email, password } = req.body;
+    register: async (req, res) => {
+        try {
+            const { firstName, lastName, username, email, password } = req.body;
+            
+            if (!(firstName && lastName && username && email && password)) {
+                throw { message: "All input is required" };
+            };
 
-			if (!(firstName && lastName && username && email && password)) {
-				throw { message: 'All input is required' };
-			}
+            const userAlreadyExists = await Users.findOne({
+                where: {
+                    [Op.or]: [{ username }, { email }]
+                }
+            });
 
-			const userAlreadyExists = await Users.findOne({
-				where: {
-					[Op.or]: [{ username }, { email }],
-				},
-			});
+            if(userAlreadyExists){
+                throw { message: "User already exists. Please go to login or input a different user" };
+            }
 
-			if (userAlreadyExists) {
-				throw {
-					message:
-						'User already exists. Please go to login or input a different user',
-				};
-			}
+            const hashPassword = await bcrypt.hash(password, 10);
 
-			const hashPassword = await bcrypt.hash(password, 10);
+            const newUserData = await Users.create({
+                firstName,
+                lastName,
+                username,
+                email: email.toLowerCase(),
+                password: hashPassword,
+            });
 
-			const newUserData = await Users.create({
-				firstName,
-				lastName,
-				username,
-				email: email.toLowerCase(),
-				password: hashPassword,
-			});
+            const token = generateSessionToken(newUserData, userKey)
+            const dataEmailToken = {
+                ...newUserData,
+                created: new Date().getTime()
+            };
+            const emailToken = generateEmailVerificationToken(dataEmailToken, userKey);
+            
+            newUserData.token = token;
+            // res.set("x-access-token", token);
 
-			const token = generateSessionToken(newUserData, userKey);
-			const emailToken = generateEmailVerificationToken(newUserData, userKey);
+            let filepath = path.resolve(__dirname, "../../template/verifyAccountEmail.html");
+            let htmlString = fs.readFileSync(filepath, "utf-8");
+            const template = handlebars.compile(htmlString);
 
-			newUserData.token = token;
-			res.set('x-access-token', token);
+            const htmlToEmail = template({
+                token: emailToken
+            });
 
-			let filepath = path.resolve(
-				__dirname,
-				'../../template/verifyAccountEmail.html',
-			);
-			let htmlString = fs.readFileSync(filepath, 'utf-8');
-			const template = handlebars.compile(htmlString);
+            transporter.sendMail({
+                from: "Obatin Pharmaceuticals <katherinedavenia24@gmail.com>",
+                to: "katherinedavenia24@gmail.com",
+                subject: "Verify Email Confirmation",
+                html: htmlToEmail,
+            });
 
-			const htmlToEmail = template({
-				token: emailToken,
-			});
+            console.log(newUserData);
+            res.status(201).send(newUserData);
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: err.message || "Server error" });
+        }
+    },
 
-			transporter.sendMail({
-				from: 'Obatin Pharmaceuticals <katherinedavenia24@gmail.com>',
-				to: email,
-				subject: 'Verify Email Confirmation',
-				html: htmlToEmail,
-			});
+    login: async (req, res) => {
+        try {
+            const { usernameOrEmail, password } = req.body;
+    
+            if (!(usernameOrEmail && password)) {
+                throw { message: "All input is required" };
+            };
+    
+            const userData = await Users.findOne({
+                where: {
+                    [Op.or]: [{ username: usernameOrEmail }, { email: usernameOrEmail }]
+                }
+            });
+    
+            if((userData) && (await bcrypt.compare(password, userData.password))){
+                const token = generateSessionToken(userData, userData.isAdmin? adminKey : userKey)
+                userData.token = token
+                // res.set("x-access-token", token);
 
-			console.log(newUserData);
-			res.status(201).send(newUserData);
-		} catch (err) {
-			console.error(err.message);
-			return res.status(500).send({ message: err.message || 'Server error' });
-		}
-	},
+                return res.status(200).send({
+                    ...userData.dataValues,
+                    token,
+                });
+            };
+            
+            throw { message: "Username or password is incorrect" };
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: err.message || "Server error" });
+        }
+    },
 
-	login: async (req, res) => {
-		try {
-			const { usernameOrEmail, password } = req.body;
+    forgotPassword: async (req, res) => {
+        try {
+            const { email } = req.body;
 
-			if (!(usernameOrEmail && password)) {
-				throw { message: 'All input is required' };
-			}
+            if (!email){
+                throw { message: "Email is required" };
+            };
 
-			const userData = await Users.findOne({
-				where: {
-					[Op.or]: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-				},
-			});
+            const userData = await Users.findOne({ where: { email } });
 
-			if (userData && (await bcrypt.compare(password, userData.password))) {
-				const token = generateSessionToken(
-					userData,
-					userData.isAdmin ? adminKey : userKey,
-				);
-				res.set('x-access-token', token);
+            if (userData){
+                console.log(userKey);
+                const emailToken = generateForgotPasswordToken(userData, userKey);
 
-				// console.log(token);
-				return res.status(200).send(userData);
-			}
+                let filepath = path.resolve(__dirname, "../../template/resetPasswordEmail.html");
+                let htmlString = fs.readFileSync(filepath, "utf-8");
+                const template = handlebars.compile(htmlString);
 
-			throw { message: 'Username or password is incorrect' };
-		} catch (err) {
-			console.error(err.message);
-			return res.status(500).send({ message: err.message || 'Server error' });
-		}
-	},
+                const htmlToEmail = template({
+                    token: emailToken
+                });
 
-	forgotPassword: async (req, res) => {
-		try {
-			const { email } = req.body;
+                transporter.sendMail({
+                    from: "Obatin Pharmaceuticals <katherinedavenia24@gmail.com>",
+                    to: "katherinedavenia24@gmail.com",
+                    subject: "Reset Password Confirmation",
+                    html: htmlToEmail,
+                });
+            };
 
-			if (!email) {
-				throw { message: 'Email is required' };
-			}
+            console.log(userData);
+            return res.sendStatus(204);
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
 
-			const userData = await Users.findOne({ where: { email } });
+    resetPassword: async (req, res) => {
+        try {
+            const { newPassword } = req.body;
+            const { id } = req.user;
 
-			if (userData) {
-				const emailToken = generateForgotPasswordToken(userData, userKey);
-				res.set('x-access-token', emailToken);
+            if(!newPassword){
+                throw { message: "New password is required"};
+            };
 
-				let filepath = path.resolve(
-					__dirname,
-					'../../template/resetPasswordEmail.html',
-				);
-				let htmlString = fs.readFileSync(filepath, 'utf-8');
-				const template = handlebars.compile(htmlString);
+            const hashPassword = await bcrypt.hash(newPassword, 10);
 
-				const htmlToEmail = template({
-					token: emailToken,
-				});
+            await Users.update(
+                { password: hashPassword },
+                { where: { id } }
+            );
 
-				transporter.sendMail({
-					from: 'Obatin Pharmaceuticals <katherinedavenia24@gmail.com>',
-					to: email,
-					subject: 'Reset Password Confirmation',
-					html: htmlToEmail,
-				});
-			}
+            return res.status(200).send({ message: "Reset password successful" }); 
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
 
-			console.log(userData);
-			return res.sendStatus(204);
-		} catch (err) {
-			console.error(err.message);
-			return res.status(500).send({ message: 'Server error' });
-		}
-	},
+    verifyAccount: async (req, res) => {
+        try {
+            const { id } = req.user;
 
-	resetPassword: async (req, res) => {
-		try {
-			const { newPassword } = req.body;
-			const { id } = req.user;
+            await Users.update(
+                { isVerified: true },
+                { where: { id } }
+            );
 
-			if (!newPassword) {
-				throw { message: 'New password is required' };
-			}
+            return res.status(200).send({ message: "Account verification is successful" }); 
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+    },
 
-			const hashPassword = await bcrypt.hash(newPassword, 10);
+    keepLogin: async (req, res) => {
+        const { id } = req.user;
+        const conn = await mysqldb.promise().getConnection();
 
-			await Users.update({ password: hashPassword }, { where: { id } });
-
-			return res.status(200).send({ message: 'Reset password successful' });
-		} catch (err) {
-			console.error(err.message);
-			return res.status(500).send({ message: 'Server error' });
-		}
-	},
-
-	verifyAccount: async (req, res) => {
-		try {
-			const { id } = req.user;
-
-			await Users.update({ isVerified: true }, { where: { id } });
-
-			return res
-				.status(200)
-				.send({ message: 'Account verification is successful' });
-		} catch (err) {
-			console.error(err.message);
-			return res.status(500).send({ message: 'Server error' });
-		}
-	},
-
-	dashboard: async (req, res) => {
-		const token = req.header('x-auth-token');
-		console.log(token);
-		res.status(200).json({ message: 'tes doanggg oke' });
-	},
+        try {
+          
+        } catch (error) {
+            conn.release();
+            console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+        }
+      },
 };
