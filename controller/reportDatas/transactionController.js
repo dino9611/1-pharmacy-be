@@ -33,7 +33,6 @@ module.exports = {
         try {
             const limit = parseInt(req.query.limit);            
             const page = parseInt(req.query.page);
-
             const offset = ((page + 1) * limit) - limit;
 
             const datas = await sequelize.query(
@@ -106,12 +105,16 @@ module.exports = {
         const { id, status, filter, transaction_number } = req.query;
 
         try {
+            const limit = parseInt(req.query.limit);            
+            const page = parseInt(req.query.page);
+            const offset = (page * limit) - limit;
+
             const queries = [orderHistoryQuery];
 
             if(filter === "orderHistory"){
                 queries.push(`WHERE u.id = ${id} and o.status = ${status} GROUP BY o.id;`);
             }else if(filter === "orderRequest"){
-                queries.push(`WHERE o.status = ${status} GROUP BY o.id ORDER BY o.createdAt DESC;`);
+                queries.push(`WHERE o.status = ${status} GROUP BY o.id ORDER BY o.createdAt DESC LIMIT ${limit} OFFSET ${offset};`);
             }else if(filter === "userDetails"){
                 queries.push(`WHERE o.status = ${status} AND o.transaction_number = ${transaction_number} GROUP BY o.id;`)
             }
@@ -123,11 +126,29 @@ module.exports = {
                 }
             );
 
+            const countDatas = await sequelize.query(
+                `SELECT COUNT(id) AS total_data
+                FROM Orders
+                WHERE status = ${status}`,
+                {
+                    type: QueryTypes.SELECT
+                }
+            );
+
             console.log(datas);
-            res.status(200).send(datas.map(data => ({
-                ...data,
-                total_payment: parseInt(data.total_payment)
-            })));
+            res.status(200).json({
+                data: datas,
+                total_payment: datas.map((data) => {
+                    return (
+                        parseInt(data.total_payment)
+                    );
+                }),
+                meta: {
+                    total: parseInt(countDatas[0].total_data),
+                    page,
+                    limit,
+                }
+            });
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });

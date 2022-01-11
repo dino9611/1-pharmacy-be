@@ -8,6 +8,5 @@ authRoutes.post('/register', register);
 authRoutes.post('/forgotPassword', forgotPassword);
 authRoutes.post('/resetPassword', verifyToken(), resetPassword);
 authRoutes.post('/verifyAccount', verifyToken(), verifyAccount);
-authRoutes.post('/keepLogin', keepLogin);
 
 module.exports = authRoutes;

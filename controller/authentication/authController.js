@@ -8,19 +8,16 @@ const { transporter } = require('../../helpers/transporter');
 const handlebars = require("handlebars");
 const path = require("path");
 const fs = require("fs");
+const { authSchema } = require('../../helpers/validationSchema');
 
 module.exports = {
     register: async (req, res) => {
-        try {
-            const { firstName, lastName, username, email, password } = req.body;
-            
-            if (!(firstName && lastName && username && email && password)) {
-                throw { message: "All input is required" };
-            };
+        try {            
+            const result = await authSchema.validateAsync(req.body);
 
             const userAlreadyExists = await Users.findOne({
                 where: {
-                    [Op.or]: [{ username }, { email }]
+                    [Op.or]: [{ username: result.username }, { email: result.email }]
                 }
             });
 
@@ -28,21 +25,19 @@ module.exports = {
                 throw { message: "User already exists. Please go to login or input a different user" };
             }
 
-            const hashPassword = await bcrypt.hash(password, 10);
+            const hashPassword = await bcrypt.hash(result.password, 10);
 
             const newUserData = await Users.create({
-                firstName,
-                lastName,
-                username,
-                email: email.toLowerCase(),
+                ...result,
                 password: hashPassword,
             });
 
             const token = generateSessionToken(newUserData, userKey)
             const dataEmailToken = {
-                ...newUserData,
+                ...newUserData.dataValues,
                 created: new Date().getTime()
             };
+            console.log(dataEmailToken);
             const emailToken = generateEmailVerificationToken(dataEmailToken, userKey);
             
             newUserData.token = token;
@@ -63,9 +58,12 @@ module.exports = {
                 html: htmlToEmail,
             });
 
-            console.log(newUserData);
-            res.status(201).send(newUserData);
+            res.status(201).send({
+                ...newUserData.dataValues,
+                token,
+            });
         } catch (err) {
+            if(err.isJoi) err.status = 422;
             console.error(err.message);
             return res.status(500).send({ message: err.message || "Server error" });
         }
@@ -165,9 +163,9 @@ module.exports = {
     },
 
     verifyAccount: async (req, res) => {
-        try {
-            const { id } = req.user;
+        const { id } = req.user;
 
+        try {
             await Users.update(
                 { isVerified: true },
                 { where: { id } }
@@ -178,19 +176,6 @@ module.exports = {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
         }
-    },
-
-    keepLogin: async (req, res) => {
-        const { id } = req.user;
-        const conn = await mysqldb.promise().getConnection();
-
-        try {
-          
-        } catch (error) {
-            conn.release();
-            console.error(err.message);
-            return res.status(500).send({ message: "Server error" });
-        }
-      },
+    }
 };
 

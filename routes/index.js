@@ -19,7 +19,7 @@ routes.get('/', (req, res) => {
 routes.use('/inventory', inventoryRoutes);
 routes.use('/admin', adminRoutes);
 routes.use(transactionRoutes);
-routes.use(authRoutes);
+routes.use('/auth', authRoutes);
 routes.use('/profile', profileRoutes);
 
 module.exports = routes;
