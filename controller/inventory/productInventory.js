@@ -147,6 +147,21 @@ class Product {
 		// this is to destroy medicine
 		res.send(`deleted`);
 	}
+	static async getPrescriptionMaterial(req, res) {
+		try {
+			const medicine = await Medicines.findAll({
+				include: Raw_materials,
+				where: {
+					PrescriptionId: {
+						[Op.ne]: null,
+					},
+				},
+			});
+			res.send(medicine);
+		} catch (error) {
+			console.log(error);
+		}
+	}
 }
 
 module.exports = Product;

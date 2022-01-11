@@ -8,6 +8,7 @@ const Product = require('../../controller/inventory/productInventory');
 inventoryRoutes.get('/medicines', Product.getSearch);
 inventoryRoutes.get('/medicines/:id', Product.getMedicineDetailInformation);
 inventoryRoutes.get('/:page/:limit/items', Product.getList);
+inventoryRoutes.get('/prescription/material', Product.getPrescriptionMaterial);
 inventoryRoutes.post('/', Product.createProduct, Product.getList);
 inventoryRoutes.get('/:id', Product.getProductDetail);
 inventoryRoutes.put('/:id', Product.updateInformation);
