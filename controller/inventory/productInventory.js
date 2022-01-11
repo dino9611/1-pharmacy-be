@@ -5,12 +5,22 @@ const Raw_materials = db.Raw_materials;
 
 class Product {
 	static async getList(req, res) {
+		console.log(req.query);
+		let sort = req.query.name;
+		let min = +req.query.min;
+		let max = +req.query.max;
 		let page = +req.params.page;
 		let limit = +req.params.limit;
 		let offset = limit * (page - 1);
 		const list = await Medicines.findAll({
 			limit: limit,
 			offset: offset,
+			where: {
+				price: {
+					[Op.between]: [min, max],
+				},
+			},
+			order: [['name', sort]],
 		});
 		const allData = await Medicines.findAll();
 		let pageLimit = allData.length;
