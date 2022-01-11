@@ -1,4 +1,3 @@
-const { sequelize } = require('../../config');
 const db = require('../../models/');
 
 const Medicines = db.Medicines;
@@ -36,8 +35,8 @@ class CustomOrder {
 	}
 	static async createOrder(req, res) {
 		//request format [{medicineInfo, materials:[{}]]
-		let input = req.body;
-		console.log(req.body);
+		const input = req.body;
+
 		try {
 			let newMedicine = await Medicines.create({
 				...input,
