@@ -83,7 +83,10 @@ module.exports = {
             );
 
             console.log(datas);
-            res.status(200).send(datas);
+            res.status(200).send(datas.map(data => ({
+                ...data,
+                total_sales: parseInt(data.total_sales)
+            })));
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
