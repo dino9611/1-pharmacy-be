@@ -94,8 +94,8 @@ module.exports = {
 			'Orders',
 			parser('./seeders/OrderSeeds.json').map(order => ({
 				...order,
-				userId: faker.datatype.number({
-					min: 1,
+				UserId: faker.datatype.number({
+					min: 6,
 					max: 200
 				})
 			})),
