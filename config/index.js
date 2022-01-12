@@ -8,8 +8,20 @@ const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 const db = {};
 
+const useDotEnv = process.env.USE_DOTENV === 'true';
+
 let sequelize;
-if (config.use_env_variable) {
+if (useDotEnv) {
+	sequelize = new Sequelize(
+		process.env.MYSQL_DATABASE || process.env.POSTGRES_DATABASE,
+		process.env.MYSQL_USERNAME || process.env.POSTGRES_USERNAME,
+		process.env.MYSQL_PASSWORD || process.env.POSTGRES_PASSWORD,
+		{
+			host: config.host,
+			dialect: config.dialect
+		},
+	);
+} else if (config.use_env_variable) {
 	sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
 	sequelize = new Sequelize(
