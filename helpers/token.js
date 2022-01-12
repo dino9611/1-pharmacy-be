@@ -4,7 +4,7 @@ module.exports.generateSessionToken = (user, key) => {
   return jwt.sign(
     { id: user.id, isAdmin: user.isAdmin },
     key,
-    { expiresIn: "2h" }
+    { expiresIn: "31d" }
   );
 }
 
