@@ -3,31 +3,6 @@ const Orders = db.Orders;
 const { QueryTypes } = require('sequelize');
 const { sequelize } = require('../../config');
 
-const orderHistoryQuery = `SELECT o.transaction_number, DATE_FORMAT(o.createdAt, "%d %M %Y") AS createdAt,
-o.shipping_name AS recipent_name, o.shipping_phone_number AS recipent_phone_number, 
-o.shipping_address, sm.name AS shipping_method, sm.price AS shipping_cost,
-SUM(od.quantity * od.price) AS total_payment
-FROM Users u
-JOIN Orders o
-ON o.UserId = u.id
-JOIN Order_details od
-ON od.OrderId = o.id
-JOIN Shipping_methods sm
-ON o.ShippingMethodId = sm.id`;
-// ^ jangan lupa tambahin: custom prescription image
-
-const orderDetailsQuery = `SELECT m.image AS medicine_image, m.name AS medicine_name, od.quantity, od.price, 
-sm.name AS shipping_method, sm.price AS shipping_cost, o.payment_image_proof, (od.quantity * od.price) AS total_price
-FROM Users u
-JOIN Orders o
-ON o.UserId = u.id
-JOIN Order_details od
-ON od.OrderId = o.id
-JOIN Shipping_methods sm
-ON o.ShippingMethodId = sm.id
-JOIN Medicines m
-ON od.MedicineId = m.id`;
-
 module.exports = {
     getUserDatas: async (req, res) => {
         try {
@@ -71,9 +46,9 @@ module.exports = {
     },
 
     getUserDetails: async (req, res) => {
-        const { id } = req.query;           
-        try {
+        const { id } = req.query;   
 
+        try {
             const datas = await sequelize.query(
                 `SELECT gender, DATE_FORMAT(birthdate, "%d %M %Y") AS birthdate, address, isVerified
                 FROM Users
@@ -102,34 +77,28 @@ module.exports = {
     },
 
     getOrderHistory: async (req, res) => {
-        const { id, status, filter, transaction_number } = req.query;
-
+        const { id, status, filter } = req.query;
+        
         try {
-            const limit = parseInt(req.query.limit);            
-            const page = parseInt(req.query.page);
-            const offset = (page * limit) - limit;
-
-            const queries = [orderHistoryQuery];
-
-            if(filter === "orderHistory"){
-                queries.push(`WHERE u.id = ${id} and o.status = ${status} GROUP BY o.id;`);
-            }else if(filter === "orderRequest"){
-                queries.push(`WHERE o.status = ${status} GROUP BY o.id ORDER BY o.createdAt DESC LIMIT ${limit} OFFSET ${offset};`);
-            }else if(filter === "userDetails"){
-                queries.push(`WHERE o.status = ${status} AND o.transaction_number = ${transaction_number} GROUP BY o.id;`)
-            }
-
+            const selectedStatus = (status === "2") ?  `(o.status = 2 OR o.status = 3)` : `o.status = ${status}`
+            const selectedFilter = (filter === "all") ? `WHERE ${selectedStatus}` : `WHERE o.id = ${id} AND o.status = ${status}`
+            
             const datas = await sequelize.query(
-                queries.join(' '),
-                {
-                    type: QueryTypes.SELECT
-                }
-            );
-
-            const countDatas = await sequelize.query(
-                `SELECT COUNT(id) AS total_data
-                FROM Orders
-                WHERE status = ${status}`,
+                `SELECT o.id, o.transaction_number, DATE_FORMAT(o.createdAt, "%d %M %Y") AS createdAt,
+                o.shipping_name AS recipent_name, o.shipping_phone_number AS recipent_phone_number, 
+                o.shipping_address, sm.name AS shipping_method, sm.price AS shipping_cost,
+                SUM(od.quantity * od.price) AS total_payment, o.payment_image_proof
+                FROM Users u
+                JOIN Orders o
+                ON o.UserId = u.id
+                JOIN Order_details od
+                ON od.OrderId = o.id
+                JOIN Shipping_methods sm
+                ON o.ShippingMethodId = sm.id
+                JOIN Medicines m
+                ON od.MedicineId = m.id
+                ${selectedFilter} 
+                GROUP BY o.id;`,
                 {
                     type: QueryTypes.SELECT
                 }
@@ -142,12 +111,7 @@ module.exports = {
                     return (
                         parseInt(data.total_payment)
                     );
-                }),
-                meta: {
-                    total: parseInt(countDatas[0].total_data),
-                    page,
-                    limit,
-                }
+                })
             });
         } catch (err) {
             console.error(err.message);
@@ -156,19 +120,29 @@ module.exports = {
     },
 
     getOrderDetails: async (req, res) => {
-        const { id, status, filter, transaction_number } = req.query;
-
+        const { id, status, filter } = req.query;
+        const selectedStatus = (status === "2") ?  `(o.status = 2 OR o.status = 3)` : `o.status = ${status}`
+        const selectedFilter = (filter === "all") ? `WHERE o.id = ${id} AND ${selectedStatus}` : `WHERE u.id = ${id} and o.status = ${status}`
+        const customPrescriptionField = (filter === "customPrescription") ? `,p.id AS custom_prescription_id, p.image AS custom_prescription_image` : ``
+        const customPrescriptionTable = (filter === "customPrescription") ? `JOIN Prescriptions p ON m.PrescriptionId = p.id` : ``
+        
         try {
-            const queries = [orderDetailsQuery];
-
-            if(filter === "orderHistory"){
-                queries.push(`WHERE u.id = ${id} and o.status = ${status};`);
-            }else if(filter === "orderRequest"){
-                queries.push(`WHERE o.status = ${status} AND o.transaction_number = ${transaction_number} ORDER BY o.createdAt DESC;`);
-            }
-
             const datas = await sequelize.query(
-                queries.join(' '),
+                `SELECT o.id, sm.name AS shipping_method, sm.price AS shipping_cost, o.payment_image_proof AS payment_image_proof,
+                m.image AS medicine_image, m.name AS medicine_name, m.serving,
+                od.price, od.quantity, (od.price * od.quantity) AS total_price
+                ${customPrescriptionField}
+                FROM Users u
+                JOIN Orders o
+                ON o.UserId = u.id
+                JOIN Order_details od
+                ON od.OrderId = o.id
+                JOIN Shipping_methods sm
+                ON o.ShippingMethodId = sm.id
+                JOIN Medicines m
+                ON od.MedicineId = m.id
+                ${customPrescriptionTable}
+                ${selectedFilter}`,
                 {
                     type: QueryTypes.SELECT
                 }
@@ -177,7 +151,11 @@ module.exports = {
             console.log(datas);
             res.status(200).send(datas.map(data => ({
                 ...data,
-                total_price: parseInt(data.total_price)
+                total_price: parseInt(data.total_price),
+                price: (data.medicine_name === "CUSTOM PRESCRIPTION" && status === "1") ? data.price = 0 : data.price,
+                quantity: (data.medicine_name === "CUSTOM PRESCRIPTION" && status === "1") ? data.quantity = 1 : data.quantity,
+                medicine_image: (data.medicine_name === "CUSTOM PRESCRIPTION" && status === "1") ? data.medicine_image = "https://www.researchgate.net/profile/Sandra-Benavides/publication/228331607/figure/fig4/AS:667613038387209@1536182760366/Indicate-why-the-prescription-is-not-appropriate-as-written.png" : data.medicine_image,
+                // payment_image_proof: "http://www.centrin.net.id/themes/newcentrin/assets/images/payment/klik-bca-new/04.png"
             })));
         } catch (err) {
             console.error(err.message);
@@ -186,12 +164,12 @@ module.exports = {
     },
 
     changeOrderStatus: async (req, res) => {
-        const { transaction_number, newStatus } = req.query;
+        const { id, newStatus } = req.query;
         
         try {
             await Orders.update(
                 { status: newStatus },
-                { where: { transaction_number } }
+                { where: { id } }
             );
 
             res.status(200).send({ message: "Order status is changed" }); 
@@ -200,5 +178,7 @@ module.exports = {
             return res.status(500).send({ message: "Server error" });
         }
     },
+
+    
 };
 

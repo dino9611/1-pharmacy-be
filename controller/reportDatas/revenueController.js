@@ -77,8 +77,10 @@ module.exports = {
         try {
             const datas = await sequelize.query(
                 `SELECT COUNT(*) AS total_orders
-                FROM Orders
-                WHERE status = 3`,
+                FROM Orders o
+                JOIN Order_details od
+                ON od.OrderId = o.id
+                WHERE o.status = 3`,
                 {
                     type: QueryTypes.SELECT
                 }
