@@ -94,7 +94,25 @@ class Material {
 		}
 	}
 
-	static async customMaterialList(req, res) {
+	static async medicineMaterialList(req, res) {
+		try {
+			const list = await Raw_materials.findAll({
+				include: {
+					model: Medicines,
+					where: {
+						PrescriptionId: {
+							[Op.eq]: null,
+						},
+					},
+				},
+			});
+			res.send(list);
+		} catch (error) {
+			console.log(error);
+			res.send(error);
+		}
+	}
+	static async prescriptionMaterialList(req, res) {
 		try {
 			const list = await Raw_materials.findAll({
 				include: {
@@ -106,7 +124,6 @@ class Material {
 					},
 				},
 			});
-			console.log(list);
 			res.send(list);
 		} catch (error) {
 			console.log(error);

@@ -4,9 +4,9 @@ const Medicines = db.Medicines;
 const Raw_materials = db.Raw_materials;
 
 class Product {
-	static async getList(req, res) {
-		console.log(req.query);
+	static async getProductEcomerce(req, res) {
 		let sort = req.query.name;
+		let sortPrice = req.query.price;
 		let min = +req.query.min;
 		let max = +req.query.max;
 		let page = +req.params.page;
@@ -20,9 +20,45 @@ class Product {
 					[Op.between]: [min, max],
 				},
 			},
-			order: [['name', sort]],
+			order: [
+				['price', sortPrice],
+				['name', sort],
+			],
 		});
-		const allData = await Medicines.findAll();
+		const allData = await Medicines.findAll({
+			where: {
+				price: {
+					[Op.between]: [min, max],
+				},
+			},
+		});
+
+		let pageLimit = allData.length;
+		res.json({ list, pageLimit });
+	}
+
+	static async getList(req, res) {
+		let page = +req.params.page;
+		let limit = +req.params.limit;
+		let offset = limit * (page - 1);
+		const list = await Medicines.findAll({
+			limit: limit,
+			offset: offset,
+			where: {
+				PrescriptionId: {
+					[Op.eq]: null,
+				},
+			},
+			order: [['name', 'DESC']],
+		});
+		const allData = await Medicines.findAll({
+			where: {
+				PrescriptionId: {
+					[Op.eq]: null,
+				},
+			},
+		});
+
 		let pageLimit = allData.length;
 		res.json({ list, pageLimit });
 	}
@@ -139,11 +175,13 @@ class Product {
 		}
 	}
 	static async deleteStock(req, res) {
-		await Medicines.destroy({
+		let data = await Medicines.destroy({
 			where: {
 				id: req.params.id,
 			},
 		});
+
+		console.log(data);
 		// this is to destroy medicine
 		res.send(`deleted`);
 	}
@@ -157,6 +195,7 @@ class Product {
 					},
 				},
 			});
+			console.log(medicine);
 			res.send(medicine);
 		} catch (error) {
 			console.log(error);
