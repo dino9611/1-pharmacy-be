@@ -50,6 +50,7 @@ class Product {
 				},
 			},
 			order: [['name', 'DESC']],
+			include: Raw_materials,
 		});
 		const allData = await Medicines.findAll({
 			where: {
