@@ -81,7 +81,8 @@ module.exports = {
         
         try {
             const selectedStatus = (status === "2") ?  `(o.status = 2 OR o.status = 3)` : `o.status = ${status}`
-            const selectedFilter = (filter === "all") ? `WHERE ${selectedStatus}` : `WHERE o.id = ${id} AND o.status = ${status}`
+            const selectedId = (filter === "byUser") ? `u.id = ${id}` : `o.id = ${id}`
+            const selectedFilter = (filter === "byOrder") ? `WHERE ${selectedStatus}` : `WHERE ${selectedId} AND o.status = ${status}`
             
             const datas = await sequelize.query(
                 `SELECT o.id, o.transaction_number, DATE_FORMAT(o.createdAt, "%d %M %Y") AS createdAt,
@@ -120,11 +121,11 @@ module.exports = {
     },
 
     getOrderDetails: async (req, res) => {
-        const { id, status, filter } = req.query;
+        const { id, status, filter, page } = req.query;
         const selectedStatus = (status === "2") ?  `(o.status = 2 OR o.status = 3)` : `o.status = ${status}`
-        const selectedFilter = (filter === "all") ? `WHERE o.id = ${id} AND ${selectedStatus}` : `WHERE u.id = ${id} and o.status = ${status}`
-        const customPrescriptionField = (filter === "customPrescription") ? `,p.id AS custom_prescription_id, p.image AS custom_prescription_image` : ``
-        const customPrescriptionTable = (filter === "customPrescription") ? `JOIN Prescriptions p ON m.PrescriptionId = p.id` : ``
+        const selectedFilter = (filter === "byOrder") ? `WHERE o.id = ${id} AND ${selectedStatus}` : `WHERE u.id = ${id} and o.status = ${status}`
+        const customPrescriptionField = (page === "customPrescription") ? `,p.id AS custom_prescription_id, p.image AS custom_prescription_image` : ``
+        const customPrescriptionTable = (page === "customPrescription") ? `JOIN Prescriptions p ON m.PrescriptionId = p.id` : ``
         
         try {
             const datas = await sequelize.query(
@@ -179,6 +180,32 @@ module.exports = {
         }
     },
 
-    
+    getMaterialList: async (req, res) => {
+		const { name } = req.query;
+
+		try {
+			const datas = await sequelize.query(
+                `SELECT *
+				FROM Raw_materials
+				WHERE name LIKE '${name}%';`,
+                {
+                    type: QueryTypes.SELECT
+                }
+			)
+            
+            const seen = new Set();
+
+            const newDatas = datas.filter(data => {
+                const duplicate = seen.has(data.name);
+                seen.add(data.name);
+                return !duplicate;
+            })
+            
+            res.status(200).send(newDatas);
+		} catch (err) {
+			console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+		}
+	}
 };
 
