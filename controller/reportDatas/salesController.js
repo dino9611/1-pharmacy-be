@@ -83,7 +83,10 @@ module.exports = {
             );
 
             console.log(datas);
-            res.status(200).send(datas);
+            res.status(200).send(datas.map(data => ({
+                ...data,
+                total_sales: parseInt(data.total_sales)
+            })));
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
@@ -92,15 +95,17 @@ module.exports = {
 
     currentOrdersStatus: async (req, res) => {
         const { year } = req.query;
-        const specifiedYear = (year) ? `WHERE YEAR(createdAt) = ${year}` : ""
+        const specifiedYear = (year) ? `WHERE YEAR(o.createdAt) = ${year}` : ""
 
         try {
             const datas = await sequelize.query(
-                `SELECT status, COUNT(status) AS current_orders
-                FROM Orders
+                `SELECT o.status, COUNT(o.status) AS current_orders
+                FROM Orders o
+                JOIN Order_details od
+                ON od.OrderId = o.id
                 ${specifiedYear}
-                GROUP BY status
-                ORDER BY status ASC;`,
+                GROUP BY o.status
+                ORDER BY o.status ASC;`,
                 {
                     type: QueryTypes.SELECT
                 }
@@ -133,7 +138,7 @@ module.exports = {
                 FROM Orders o
                 JOIN Users u
                 ON o.UserId = u.id
-                WHERE o.status = 3 AND YEAR(o.createdAt) = ${year}
+                WHERE YEAR(o.createdAt) = ${year}
                 GROUP BY u.gender
                 ORDER BY total_orders DESC;`,
                 {
@@ -159,7 +164,7 @@ module.exports = {
                 FROM Orders o
                 JOIN Users u
                 ON o.UserId = u.id
-                WHERE o.status = 3 AND YEAR(o.createdAt) = ${year}
+                WHERE YEAR(o.createdAt) = ${year}
                 GROUP BY age
                 ORDER BY age ASC;`,
                 {
@@ -176,17 +181,17 @@ module.exports = {
 
             datas.forEach((data, index) => {
                 if (data.age > 0 && data.age < 20) {
-                    total_orders1 += 1
+                    total_orders1 += data.total_orders
                 } else if (data.age >= 20 && data.age < 30) {
-                    total_orders2 += 1
+                    total_orders2 += data.total_orders
                 } else if (data.age >= 30 && data.age < 40) {
-                    total_orders3 += 1
+                    total_orders3 += data.total_orders
                 } else if (data.age >= 40 && data.age < 50) {
-                    total_orders4 + 1
+                    total_orders4 += data.total_orders
                 } else if (data.age >= 50 && data.age < 60) {
-                    total_orders5 + 1
+                    total_orders5 += data.total_orders
                 } else {
-                    total_orders6 + 1
+                    total_orders6 += data.total_orders
                 };
             });
 
