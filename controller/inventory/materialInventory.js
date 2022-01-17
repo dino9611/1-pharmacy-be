@@ -1,6 +1,7 @@
 const db = require('../../models/index');
 const { Op } = require('sequelize');
 const Raw_materials = db.Raw_materials;
+const Medicines = db.Medicines;
 
 class Material {
 	static async getList(req, res) {
@@ -92,7 +93,43 @@ class Material {
 			res.status(500).json(error);
 		}
 	}
+
+	static async medicineMaterialList(req, res) {
+		try {
+			const list = await Raw_materials.findAll({
+				include: {
+					model: Medicines,
+					where: {
+						PrescriptionId: {
+							[Op.eq]: null,
+						},
+					},
+				},
+			});
+			res.send(list);
+		} catch (error) {
+			console.log(error);
+			res.send(error);
+		}
+	}
+	static async prescriptionMaterialList(req, res) {
+		try {
+			const list = await Raw_materials.findAll({
+				include: {
+					model: Medicines,
+					where: {
+						PrescriptionId: {
+							[Op.ne]: null,
+						},
+					},
+				},
+			});
+			res.send(list);
+		} catch (error) {
+			console.log(error);
+			res.send(error);
+		}
+	}
 }
 
 module.exports = Material;
-

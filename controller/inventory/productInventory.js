@@ -4,6 +4,60 @@ const Medicines = db.Medicines;
 const Raw_materials = db.Raw_materials;
 
 class Product {
+	static async getProductEcomerce(req, res) {
+		try {
+			let sort = req.query.name;
+			let sortPrice = req.query.price;
+			let min = +req.query.min;
+			let max = +req.query.max;
+			let page = +req.params.page;
+			let limit = +req.params.limit;
+			let offset = limit * (page - 1);
+			const list = await Medicines.findAll({
+				limit: limit,
+				offset: offset,
+				where: {
+					price: {
+						[Op.between]: [min, max],
+					},
+					PrescriptionId: {
+						[Op.eq]: null,
+					},
+				},
+				order: [
+					['price', sortPrice],
+					['name', sort],
+				],
+			});
+			// const list = await Medicines.findAll({
+			// 	limit: limit,
+			// 	offset: offset,
+			// 	where: {
+			// 		price: {
+			// 			[Op.between]: [min, max],
+			// 		},
+			// 	},
+			// 	order: [
+			// 		['price', sortPrice],
+			// 		['name', sort],
+			// 	],
+			// });
+			const allData = await Medicines.findAll({
+				where: {
+					price: {
+						[Op.between]: [min, max],
+					},
+				},
+			});
+
+			let pageLimit = allData.length;
+			res.json({ list, pageLimit });
+		} catch (error) {
+			console.log(error);
+			res.json({ message: error });
+		}
+	}
+
 	static async getList(req, res) {
 		let page = +req.params.page;
 		let limit = +req.params.limit;
@@ -11,8 +65,22 @@ class Product {
 		const list = await Medicines.findAll({
 			limit: limit,
 			offset: offset,
+			where: {
+				PrescriptionId: {
+					[Op.eq]: null,
+				},
+			},
+			order: [['name', 'DESC']],
+			include: Raw_materials,
 		});
-		const allData = await Medicines.findAll();
+		const allData = await Medicines.findAll({
+			where: {
+				PrescriptionId: {
+					[Op.eq]: null,
+				},
+			},
+		});
+
 		let pageLimit = allData.length;
 		res.json({ list, pageLimit });
 	}
@@ -99,20 +167,57 @@ class Product {
 	}
 	static async updateInformation(req, res) {
 		const input = req.body;
-
-		try {
-			await Medicines.update(
-				{
-					...input,
-				},
-				{
+		if (input.quantityInStock) {
+			try {
+				let data = await Medicines.findOne({
 					where: { id: req.params.id },
-				},
-			);
-			let data = await Medicines.findOne({ where: { id: req.params.id } });
-			res.json(data);
-		} catch (error) {
-			console.log(error);
+					include: Raw_materials,
+				});
+
+				if (input.quantityInStock > data.quantityInStock) {
+					data.Raw_materials.forEach(async (element) => {
+						let check = await Raw_materials.findOne({
+							where: { id: element.id },
+						});
+					});
+					// console.log(data.Raw_materials[0].Medicine_ingredients);
+
+					// console.log(data.Raw_materials[index]);
+					console.log(data);
+					res.json({ message: 'update stock increase' });
+				} else if (
+					input.quantity < data.quantityInStock ||
+					input.quantity === data.quantityInStock
+				) {
+					let update = await Medicines.update(
+						{ quantityInStock: input.quantity },
+						{
+							where: { id: req.params.id },
+						},
+					);
+
+					res.json(update);
+				} else {
+					res.send({ message: 'not found' });
+				}
+			} catch (error) {
+				res.send({ message: 'error raw materials' });
+			}
+		} else {
+			try {
+				await Medicines.update(
+					{
+						...input,
+					},
+					{
+						where: { id: req.params.id },
+					},
+				);
+				let data = await Medicines.findOne({ where: { id: req.params.id } });
+				res.json(data);
+			} catch (error) {
+				console.log(error);
+			}
 		}
 	}
 
@@ -129,13 +234,31 @@ class Product {
 		}
 	}
 	static async deleteStock(req, res) {
-		await Medicines.destroy({
+		let data = await Medicines.destroy({
 			where: {
 				id: req.params.id,
 			},
 		});
+
+		console.log(data);
 		// this is to destroy medicine
 		res.send(`deleted`);
+	}
+	static async getPrescriptionMaterial(req, res) {
+		try {
+			const medicine = await Medicines.findAll({
+				include: Raw_materials,
+				where: {
+					PrescriptionId: {
+						[Op.ne]: null,
+					},
+				},
+			});
+			console.log(medicine);
+			res.send(medicine);
+		} catch (error) {
+			console.log(error);
+		}
 	}
 }
 
