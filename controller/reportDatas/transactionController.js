@@ -77,12 +77,14 @@ module.exports = {
     },
 
     getOrderHistory: async (req, res) => {
-        const { id, status, filter } = req.query;
+        const { id, status, filter, limit, page } = req.query;
+        const offset = (page * limit) - limit;
         
         try {
             const selectedStatus = (status === "2") ?  `(o.status = 2 OR o.status = 3)` : `o.status = ${status}`
             const selectedId = (filter === "byUser") ? `u.id = ${id}` : `o.id = ${id}`
             const selectedFilter = (filter === "byOrder") ? `WHERE ${selectedStatus}` : `WHERE ${selectedId} AND o.status = ${status}`
+            const pagination = (limit && page) ? `LIMIT ${limit} OFFSET ${offset}` : ``
             
             const datas = await sequelize.query(
                 `SELECT o.id, o.transaction_number, DATE_FORMAT(o.createdAt, "%d %M %Y") AS createdAt,
@@ -99,20 +101,37 @@ module.exports = {
                 JOIN Medicines m
                 ON od.MedicineId = m.id
                 ${selectedFilter} 
-                GROUP BY o.id;`,
+                GROUP BY o.id
+                ${pagination};`,
                 {
                     type: QueryTypes.SELECT
                 }
             );
 
-            console.log(datas);
+            const countDatas = await sequelize.query(
+                `SELECT COUNT(o.id) AS total_data
+                FROM Users u
+                JOIN Orders o
+                ON o.UserId = u.id
+                JOIN Order_details od
+                ON od.OrderId = o.id
+                ${selectedFilter};`,
+                {
+                    type: QueryTypes.SELECT
+                }
+            );
+
+            // console.log(datas);
             res.status(200).json({
-                data: datas,
-                total_payment: datas.map((data) => {
-                    return (
-                        parseInt(data.total_payment)
-                    );
-                })
+                data: datas.map(data => ({
+                    ...data,
+                    total_payment: parseInt(data.total_payment)
+                })),
+                meta: {
+                    total: countDatas,
+                    page,
+                    limit,
+                }
             });
         } catch (err) {
             console.error(err.message);
@@ -129,7 +148,7 @@ module.exports = {
         
         try {
             const datas = await sequelize.query(
-                `SELECT o.id, sm.name AS shipping_method, sm.price AS shipping_cost, o.payment_image_proof AS payment_image_proof,
+                `SELECT o.id, sm.name AS shipping_method, sm.price AS shipping_cost, o.payment_image_proof,
                 m.image AS medicine_image, m.name AS medicine_name, m.serving,
                 od.price, od.quantity, (od.price * od.quantity) AS total_price
                 ${customPrescriptionField}
@@ -155,8 +174,7 @@ module.exports = {
                 total_price: parseInt(data.total_price),
                 price: (data.medicine_name === "CUSTOM PRESCRIPTION" && status === "1") ? data.price = 0 : data.price,
                 quantity: (data.medicine_name === "CUSTOM PRESCRIPTION" && status === "1") ? data.quantity = 1 : data.quantity,
-                medicine_image: (data.medicine_name === "CUSTOM PRESCRIPTION" && status === "1") ? data.medicine_image = "https://www.researchgate.net/profile/Sandra-Benavides/publication/228331607/figure/fig4/AS:667613038387209@1536182760366/Indicate-why-the-prescription-is-not-appropriate-as-written.png" : data.medicine_image,
-                // payment_image_proof: "http://www.centrin.net.id/themes/newcentrin/assets/images/payment/klik-bca-new/04.png"
+                medicine_image: (data.medicine_name === "CUSTOM PRESCRIPTION") ? data.medicine_image = "https://www.researchgate.net/profile/Sandra-Benavides/publication/228331607/figure/fig4/AS:667613038387209@1536182760366/Indicate-why-the-prescription-is-not-appropriate-as-written.png" : data.medicine_image,
             })));
         } catch (err) {
             console.error(err.message);
@@ -164,9 +182,11 @@ module.exports = {
         }
     },
 
-    changeOrderStatus: async (req, res) => {
+    acceptOrRejectAction: async (req, res) => {
         const { id, newStatus } = req.query;
-        
+        const { prescriptionsToBeSubmitted } = req.body;
+        console.log(prescriptionsToBeSubmitted);
+
         try {
             await Orders.update(
                 { status: newStatus },
