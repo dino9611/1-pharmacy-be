@@ -90,7 +90,6 @@ module.exports = {
             if((userData) && (await bcrypt.compare(password, userData.password))){
                 const token = generateSessionToken(userData, userData.isAdmin? adminKey : userKey)
                 userData.token = token
-                // res.set("x-access-token", token);
 
                 return res.status(200).send({
                     ...userData.dataValues,
