@@ -21,10 +21,10 @@ class Material {
 			const list = await Raw_materials.findAll({
 				where: {
 					name: {
-						[Op.like]: `${req.query.name}%`,
+						[Op.like]: `%${req.query?.name || ""}%`,
 					}, // => where name like %? wild card sql
 				},
-				limit: 10,
+				limit: parseInt(req.query?.limit) || 10,
 			});
 
 			res.json(list);

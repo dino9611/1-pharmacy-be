@@ -22,17 +22,26 @@ class Product {
 			const list = await Medicines.findAll({
 				where: {
 					name: {
-						[Op.like]: `${req.query.name}%`,
-					}, // => where name like %? wild card sql
+						[Op.like]: `${req.query?.name || ""}%`,
+					},// => where name like %? wild card sql
+					//Filter price
+					...((req.query?.priceMin || req.query?.priceMax) && {
+						price: {
+							...(req.query?.priceMin && { [Op.gte]: req.query?.priceMin }),
+							...(req.query?.priceMax && { [Op.lte]: req.query?.priceMax })
+						}
+					}),
 				},
-				limit: 10,
+				limit: parseInt(req.query?.limit) || 10,
 			});
+			// console.log(list)
 			res.json(list);
 		} catch (error) {
 			console.log(error);
 			res.status(500).json({ error });
 		}
 	}
+
 	static async getProductDetail(req, res) {
 		try {
 			const medicine = await Medicines.findOne({
