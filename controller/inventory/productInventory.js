@@ -48,15 +48,69 @@ class Product {
 	}
 	static async editStock(req, res) {
 		const { quantityInStock } = req.body;
+		const medicine = await Medicines.findOne({
+			where: { id: req.params.id },
+			include: Raw_materials,
+		});
+		const stockDifference = quantityInStock - medicine.quantityInStock;
+		let message = 'checking data';
+		let rejectMaterial = [];
 
-		//handle calculation on frontend
-		let data = await Medicines.update(
-			{ quantityInStock },
-			{
-				where: { id: req.params.id },
-			},
-		);
-		res.json(data);
+		if (stockDifference > 0) {
+			medicine.Raw_materials.forEach((element) => {
+				if (
+					element.stock_quantity -
+						element.Medicine_ingredients.quantity * stockDifference >=
+					0
+				) {
+					message = 'material checked';
+				} else {
+					rejectMaterial.push(element.name);
+					console.log(rejectMaterial);
+					message = 'material unavailable';
+				}
+			});
+			if (rejectMaterial.length === 0) {
+				medicine.Raw_materials.forEach(async (element) => {
+					let newQuantity =
+						element.stock_quantity -
+						element.Medicine_ingredients.quantity * stockDifference;
+					await Raw_materials.update(
+						{
+							stock_quantity: newQuantity,
+							bottle_quantity: Math.ceil(
+								element.stock_quantity / element.quantity_per_bottle,
+							),
+						},
+						{ where: { id: element.id } },
+					);
+
+					let data = await Raw_materials.findOne({ where: { id: element.id } });
+
+					console.log(data);
+				});
+
+				await Medicines.update(
+					{ quantityInStock },
+					{ where: { id: req.params.id } },
+				);
+				const data = await Medicines.findOne({ where: { id: req.params.id } });
+				message = 'quantity updated';
+				res.json({ message, data });
+			} else {
+				res.json({ message, rejectMaterial });
+			}
+		} else {
+			await Medicines.update(
+				{ quantityInStock },
+				{
+					where: { id: req.params.id },
+				},
+			);
+			message = 'quantity less than initial value imidiate update';
+			const data = await Medicines.findOne({ where: { id: req.params.id } });
+			res.json({ message, data });
+		}
 	}
 	static async createProduct(req, res) {
 		//request format [{medicineInfo, materials:[{}]]

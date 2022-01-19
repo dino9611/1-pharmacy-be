@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 8081;
 
-app.use(cors({exposedHeaders: ["x-token-access"]}));
+app.use(cors({ exposedHeaders: ['x-access-token'] }));
 
 app.use(express.json());
 

@@ -1,6 +1,12 @@
 const express = require('express');
 const authRoutes = express.Router();
-const { login, register, forgotPassword, resetPassword, verifyAccount } = require('../../controller/authentication/authController');
+const {
+	login,
+	register,
+	forgotPassword,
+	resetPassword,
+	verifyAccount,
+} = require('../../controller/authentication/authController');
 const { verifyUserToken } = require('../../middleware');
 
 authRoutes.post('/login', login);
