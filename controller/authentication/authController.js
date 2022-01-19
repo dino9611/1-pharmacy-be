@@ -1,5 +1,6 @@
 const db = require('../../models/');
 const Users = db.Users;
+const Carts = db.Carts;
 const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const { adminKey, userKey } = require('../../helpers/constants');
@@ -19,18 +20,18 @@ module.exports = {
 		try {
 			const result = await authSchema.validateAsync(req.body);
 
-			const userAlreadyExists = await Users.findOne({
-				where: {
-					[Op.or]: [{ username: result.username }, { email: result.email }],
-				},
-			});
+			// const userAlreadyExists = await Users.findOne({
+			// 	where: {
+			// 		[Op.or]: [{ username: result.username }, { email: result.email }],
+			// 	},
+			// });
 
-			if (userAlreadyExists) {
-				throw {
-					message:
-						'User already exists. Please go to login or input a different user',
-				};
-			}
+			// if (userAlreadyExists) {
+			// 	throw {
+			// 		message:
+			// 			'User already exists. Please go to login or input a different user',
+			// 	};
+			// }
 
 			const hashPassword = await bcrypt.hash(result.password, 10);
 
@@ -38,6 +39,14 @@ module.exports = {
 				...result,
 				password: hashPassword,
 			});
+
+			const cart = await Carts.create({
+				isCheckout: false,
+				UserId: newUserData.id, // => weird work around supposed to use setMethod
+			});
+			/**
+			 * remember to delete cart before delete users since this is a weird work around
+			 */
 
 			const token = generateSessionToken(newUserData, userKey);
 			const dataEmailToken = {
@@ -66,7 +75,7 @@ module.exports = {
 
 			transporter.sendMail({
 				from: 'Obatin Pharmaceuticals <katherinedavenia24@gmail.com>',
-				to: 'katherinedavenia24@gmail.com',
+				to: result.email,
 				subject: 'Verify Email Confirmation',
 				html: htmlToEmail,
 			});

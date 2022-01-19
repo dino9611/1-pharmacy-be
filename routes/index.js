@@ -7,6 +7,7 @@ const authRoutes = require('./api/authentication');
 const profileRoutes = require('./api/profile');
 const materialRoutes = require('./api/material');
 const customRoutes = require('./api/custom');
+const cartRoutes = require('./api/cart');
 
 // @import router path
 
@@ -24,6 +25,7 @@ routes.use('/admin', adminRoutes);
 routes.use('/auth', authRoutes);
 routes.use('/profile', profileRoutes);
 routes.use('/material', materialRoutes);
+routes.use('/cart', cartRoutes);
 routes.use(transactionRoutes);
 routes.use('/custom', customRoutes);
 
