@@ -13,7 +13,7 @@ inventoryRoutes.get('/medicines/:id', Product.getMedicineDetailInformation);
 inventoryRoutes.post('/', Product.createProduct, Product.getList);
 inventoryRoutes.get('/:id', Product.getProductDetail);
 inventoryRoutes.put('/:id', Product.updateInformation);
-inventoryRoutes.put('/stock/:id', Product.editStock);
+inventoryRoutes.put('/medicines/stock/:id', Product.editStock);
 inventoryRoutes.delete('/:id', Product.deleteStock);
 
 //@ Raw materials

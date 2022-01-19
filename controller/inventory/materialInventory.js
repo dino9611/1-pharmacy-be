@@ -77,9 +77,29 @@ class Material {
 			});
 	}
 	static async updateQuantity(req, res) {
-		res.send(
-			'update stock according to quantity not bottle, later for should have feature',
-		);
+		const input = req.body;
+		let data = await Raw_materials.findOne({ where: { id: req.params.id } });
+
+		if (input.bottle_quantity) {
+			input.stock_quantity =
+				input.bottle_quantity * data.dataValues.quantity_per_bottle;
+		}
+		Raw_materials.update(
+			{
+				...input,
+			},
+			{ where: { id: req.params.id } },
+		)
+			.then(() => {
+				return Raw_materials.findOne({ where: { id: req.params.id } });
+			})
+			.then((data) => {
+				res.json(data);
+			})
+			.catch((error) => {
+				console.log(error);
+				res.status(500).json({ error });
+			});
 	}
 	static async deleteStock(req, res) {
 		try {

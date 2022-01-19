@@ -3,7 +3,7 @@ const routes = express.Router();
 const inventoryRoutes = require('./api/inventory');
 const adminRoutes = require('./api/admin');
 const transactionRoutes = require('./api/transactions');
-const authRoutes= require('./api/authentication');
+const authRoutes = require('./api/authentication');
 const profileRoutes = require('./api/profile');
 const materialRoutes = require('./api/material');
 const customRoutes = require('./api/custom');
@@ -26,6 +26,5 @@ routes.use('/profile', profileRoutes);
 routes.use('/material', materialRoutes);
 routes.use(transactionRoutes);
 routes.use('/custom', customRoutes);
-
 
 module.exports = routes;
