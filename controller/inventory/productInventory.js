@@ -37,8 +37,8 @@ class Product {
 				},
 			});
 
-			let pageLimit = allData.length;
-			res.json({ list, pageLimit });
+			let itemCount = allData.length;
+			res.json({ list, itemCount });
 		} catch (error) {
 			console.log(error);
 			res.json({ message: error });
