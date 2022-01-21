@@ -1,7 +1,9 @@
 const db = require('../../models');
 const Orders = db.Orders;
+const Order_details = db.Order_details;
 const { QueryTypes } = require('sequelize');
 const { sequelize } = require('../../config');
+const { Op } = sequelize;
 
 module.exports = {
     getUserDatas: async (req, res) => {
@@ -38,7 +40,7 @@ module.exports = {
                     limit,
                 }
             });
-            console.log(countDatas)
+            console.log(countDatas);
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
@@ -149,7 +151,7 @@ module.exports = {
         try {
             const datas = await sequelize.query(
                 `SELECT o.id, sm.name AS shipping_method, sm.price AS shipping_cost, o.payment_image_proof,
-                m.image AS medicine_image, m.name AS medicine_name, m.serving,
+                m.image AS medicine_image, m.id AS medicine_id, m.name AS medicine_name, m.serving,
                 od.price, od.quantity, (od.price * od.quantity) AS total_price
                 ${customPrescriptionField}
                 FROM Users u
@@ -184,14 +186,30 @@ module.exports = {
 
     acceptOrRejectAction: async (req, res) => {
         const { id, newStatus } = req.query;
-        const { prescriptionsToBeSubmitted } = req.body;
-        console.log(prescriptionsToBeSubmitted);
+        // const { prescriptionsToBeSubmitted, orderDetails } = req.body;
 
         try {
             await Orders.update(
                 { status: newStatus },
                 { where: { id } }
             );
+
+            // const getMedicineId = await Order_details.update(
+            //     { 
+            //         price: {
+            //             [Op.in]: [prescriptionsToBeSubmitted.map(prescriptionToBeSubmitted => prescriptionToBeSubmitted.orderID)]
+            //         }
+            //     },
+            //     { 
+            //         where: { 
+            //             MedicineID: {
+            //                 [Op.in]: [orderDetails.map(orderDetail => orderDetail.medicine_id)]
+            //             }
+            //         } 
+            //     }
+            // );
+
+            // console.log( "START", getMedicineId, "END")
 
             res.status(200).send({ message: "Order status is changed" }); 
         } catch (err) {
