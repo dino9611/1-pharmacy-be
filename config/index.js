@@ -10,7 +10,7 @@ const db = {};
 
 const useDotEnv = process.env.USE_DOTENV === 'true';
 
-export const URL = process.env.URL || 'http://localhost:3000';
+const URL = process.env.URL || 'http://localhost:3000';
 
 let sequelize;
 if (useDotEnv) {
