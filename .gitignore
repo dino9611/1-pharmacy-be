@@ -1,2 +1,4 @@
 node_modules/
 generator
+.env
+config/config.json
