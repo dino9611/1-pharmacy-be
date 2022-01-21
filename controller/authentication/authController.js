@@ -21,18 +21,18 @@ module.exports = {
 		try {
 			const result = await authSchema.validateAsync(req.body);
 
-			// const userAlreadyExists = await Users.findOne({
-			// 	where: {
-			// 		[Op.or]: [{ username: result.username }, { email: result.email }],
-			// 	},
-			// });
+			const userAlreadyExists = await Users.findOne({
+				where: {
+					[Op.or]: [{ username: result.username }, { email: result.email }],
+				},
+			});
 
-			// if (userAlreadyExists) {
-			// 	throw {
-			// 		message:
-			// 			'User already exists. Please go to login or input a different user',
-			// 	};
-			// }
+			if (userAlreadyExists) {
+				throw {
+					message:
+						'User already exists. Please go to login or input a different user',
+				};
+			}
 
 			const hashPassword = await bcrypt.hash(result.password, 10);
 
