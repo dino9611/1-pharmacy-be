@@ -14,6 +14,7 @@ const handlebars = require('handlebars');
 const path = require('path');
 const fs = require('fs');
 const { authSchema } = require('../../helpers/validationSchema');
+const { URL } = require('../../config');
 
 module.exports = {
 	register: async (req, res) => {
@@ -60,7 +61,6 @@ module.exports = {
 			);
 
 			newUserData.token = token;
-			// res.set("x-access-token", token);
 
 			let filepath = path.resolve(
 				__dirname,
@@ -71,6 +71,7 @@ module.exports = {
 
 			const htmlToEmail = template({
 				token: emailToken,
+				url: URL
 			});
 
 			transporter.sendMail({
@@ -148,6 +149,7 @@ module.exports = {
 
 				const htmlToEmail = template({
 					token: emailToken,
+					url: URL
 				});
 
 				transporter.sendMail({
