@@ -13,7 +13,7 @@ class Product {
 			let page = +req.params.page;
 			let limit = +req.params.limit;
 			let offset = limit * (page - 1);
-			const list = await Medicines.findAll({
+			const { count, rows } = await Medicines.findAndCountAll({
 				limit: limit,
 				offset: offset,
 				where: {
@@ -29,16 +29,7 @@ class Product {
 					['name', sort],
 				],
 			});
-			const allData = await Medicines.findAll({
-				where: {
-					price: {
-						[Op.between]: [min, max],
-					},
-				},
-			});
-
-			let itemCount = allData.length;
-			res.json({ list, itemCount });
+			res.json({ list: rows, itemCount: count });
 		} catch (error) {
 			console.log(error);
 			res.json({ message: error });
@@ -50,17 +41,18 @@ class Product {
 		let limit = +req.params.limit;
 		let offset = limit * (page - 1);
 		const list = await Medicines.findAll({
-			limit: limit,
-			offset: offset,
 			where: {
 				PrescriptionId: {
 					[Op.eq]: null,
 				},
 			},
-			order: [['name', 'DESC']],
+			limit: limit,
+			offset: offset,
+			order: [['name', 'ASC']],
 			include: Raw_materials,
 		});
-		const allData = await Medicines.findAll({
+
+		let data = await Medicines.findAll({
 			where: {
 				PrescriptionId: {
 					[Op.eq]: null,
@@ -68,7 +60,7 @@ class Product {
 			},
 		});
 
-		let pageLimit = allData.length;
+		let pageLimit = data.length;
 		res.json({ list, pageLimit });
 	}
 
@@ -100,72 +92,7 @@ class Product {
 			res.status(500).json({ message: error });
 		}
 	}
-	static async editStock(req, res) {
-		const { quantityInStock } = req.body;
-		const medicine = await Medicines.findOne({
-			where: { id: req.params.id },
-			include: Raw_materials,
-		});
-		const stockDifference = quantityInStock - medicine.quantityInStock;
-		let message = 'checking data';
-		let rejectMaterial = [];
 
-		if (stockDifference > 0) {
-			medicine.Raw_materials.forEach((element) => {
-				if (
-					element.stock_quantity -
-						element.Medicine_ingredients.quantity * stockDifference >=
-					0
-				) {
-					message = 'material checked';
-				} else {
-					rejectMaterial.push(element.name);
-					console.log(rejectMaterial);
-					message = 'material unavailable';
-				}
-			});
-			if (rejectMaterial.length === 0) {
-				medicine.Raw_materials.forEach(async (element) => {
-					let newQuantity =
-						element.stock_quantity -
-						element.Medicine_ingredients.quantity * stockDifference;
-					await Raw_materials.update(
-						{
-							stock_quantity: newQuantity,
-							bottle_quantity: Math.ceil(
-								element.stock_quantity / element.quantity_per_bottle,
-							),
-						},
-						{ where: { id: element.id } },
-					);
-
-					let data = await Raw_materials.findOne({ where: { id: element.id } });
-
-					console.log(data);
-				});
-
-				await Medicines.update(
-					{ quantityInStock },
-					{ where: { id: req.params.id } },
-				);
-				const data = await Medicines.findOne({ where: { id: req.params.id } });
-				message = 'quantity updated';
-				res.json({ message, data });
-			} else {
-				res.json({ message, rejectMaterial });
-			}
-		} else {
-			await Medicines.update(
-				{ quantityInStock },
-				{
-					where: { id: req.params.id },
-				},
-			);
-			message = 'quantity less than initial value imidiate update';
-			const data = await Medicines.findOne({ where: { id: req.params.id } });
-			res.json({ message, data });
-		}
-	}
 	static async createProduct(req, res) {
 		//request format [{medicineInfo, materials:[{}]]
 		let input = req.body;
@@ -208,57 +135,89 @@ class Product {
 	}
 	static async updateInformation(req, res) {
 		const input = req.body;
-		if (input.quantityInStock) {
-			try {
-				let data = await Medicines.findOne({
+		try {
+			await Medicines.update(
+				{
+					...input,
+				},
+				{
 					where: { id: req.params.id },
-					include: Raw_materials,
-				});
+				},
+			);
+			let data = await Medicines.findOne({ where: { id: req.params.id } });
+			res.json(data);
+		} catch (error) {
+			console.log(error);
+		}
+	}
 
-				if (input.quantityInStock > data.quantityInStock) {
-					data.Raw_materials.forEach(async (element) => {
-						let check = await Raw_materials.findOne({
-							where: { id: element.id },
-						});
-					});
-					// console.log(data.Raw_materials[0].Medicine_ingredients);
+	static async editStock(req, res) {
+		const { quantityInStock } = req.body;
+		const medicine = await Medicines.findOne({
+			where: { id: req.params.id },
+			include: Raw_materials,
+		});
+		const stockDifference = quantityInStock - medicine.quantityInStock;
+		let message = 'checking data';
+		let rejectMaterial = [];
 
-					// console.log(data.Raw_materials[index]);
-					console.log(data);
-					res.json({ message: 'update stock increase' });
-				} else if (
-					input.quantity < data.quantityInStock ||
-					input.quantity === data.quantityInStock
+		if (stockDifference > 0) {
+			medicine.Raw_materials.forEach((element) => {
+				if (
+					element.stock_quantity -
+						element.Medicine_ingredients.quantity * stockDifference >=
+					0
 				) {
-					let update = await Medicines.update(
-						{ quantityInStock: input.quantity },
+					message = 'material checked';
+				} else {
+					rejectMaterial.push(element.name);
+					console.log(rejectMaterial);
+					message = 'material unavailable';
+				}
+			});
+
+			if (rejectMaterial.length === 0) {
+				medicine.Raw_materials.forEach(async (element) => {
+					let newQuantity =
+						element.stock_quantity -
+						element.Medicine_ingredients.quantity * stockDifference;
+
+					await Raw_materials.update(
 						{
-							where: { id: req.params.id },
+							stock_quantity: newQuantity,
+							bottle_quantity: Math.ceil(
+								element.stock_quantity / element.quantity_per_bottle,
+							),
 						},
+						{ where: { id: element.id } },
 					);
 
-					res.json(update);
-				} else {
-					res.send({ message: 'not found' });
-				}
-			} catch (error) {
-				res.send({ message: 'error raw materials' });
+					let data = await Raw_materials.findOne({ where: { id: element.id } });
+
+					console.log(data);
+				});
+
+				await Medicines.update(
+					{ quantityInStock },
+					{ where: { id: req.params.id } },
+				);
+
+				const data = await Medicines.findOne({ where: { id: req.params.id } });
+				message = 'quantity updated';
+				res.json({ message, data });
+			} else {
+				res.json({ message, rejectMaterial });
 			}
 		} else {
-			try {
-				await Medicines.update(
-					{
-						...input,
-					},
-					{
-						where: { id: req.params.id },
-					},
-				);
-				let data = await Medicines.findOne({ where: { id: req.params.id } });
-				res.json(data);
-			} catch (error) {
-				console.log(error);
-			}
+			await Medicines.update(
+				{ quantityInStock },
+				{
+					where: { id: req.params.id },
+				},
+			);
+			message = 'quantity less than initial value imidiate update';
+			const data = await Medicines.findOne({ where: { id: req.params.id } });
+			res.json({ message, data });
 		}
 	}
 
@@ -274,6 +233,7 @@ class Product {
 			console.log(error);
 		}
 	}
+
 	static async deleteStock(req, res) {
 		let data = await Medicines.destroy({
 			where: {
@@ -281,10 +241,9 @@ class Product {
 			},
 		});
 
-		console.log(data);
-		// this is to destroy medicine
 		res.send(`deleted`);
 	}
+
 	static async getPrescriptionMaterial(req, res) {
 		try {
 			const medicine = await Medicines.findAll({
