@@ -1,6 +1,7 @@
 const express = require('express');
 const inventoryRoutes = express.Router();
 const Product = require('../../controller/inventory/productInventory');
+const { topMedicineOrders } = require('../../controller/reportDatas/salesController');
 //@ admin raw material and pharmacy product routes
 //! private
 
@@ -15,6 +16,7 @@ inventoryRoutes.get('/:id', Product.getProductDetail);
 inventoryRoutes.put('/:id', Product.updateInformation);
 inventoryRoutes.put('/medicines/stock/:id', Product.editStock);
 inventoryRoutes.delete('/:id', Product.deleteStock);
+
 
 //@ Raw materials
 

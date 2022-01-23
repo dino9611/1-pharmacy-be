@@ -6,6 +6,7 @@ const { verifyAdminToken } = require('../../middleware');
 
 adminRoutes.get('/sales/monthly-sales', verifyAdminToken(), monthlySales);
 adminRoutes.get('/sales/top-medicine-orders', verifyAdminToken(), topMedicineOrders);
+adminRoutes.get('/top-medicine-orders', topMedicineOrders);
 adminRoutes.get('/sales/top-buyers', verifyAdminToken(), topBuyers);
 adminRoutes.get('/sales/current-orders-status', verifyAdminToken(), currentOrdersStatus);
 adminRoutes.get('/sales/orders-by-gender', verifyAdminToken(), ordersByGender);

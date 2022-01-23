@@ -33,20 +33,20 @@ module.exports = {
     },
 
     topMedicineOrders: async (req, res) => {
-        const { year } = req.query;
-
+        const { year, filter } = req.query;
+        const selectedFilter = ( filter === "noLimit" ? `` : `LIMIT 10`);
         try {
             const datas = await sequelize.query(
-                `SELECT m.name AS medicine, SUM(od.quantity) AS total_medicine_orders
+                `SELECT m.id, m.name AS medicine, m.price, m.image, SUM(od.quantity) AS total_medicine_orders
                 FROM Orders o
                 JOIN Order_details od
                 ON od.OrderId = o.id
                 JOIN Medicines m
                 ON od.MedicineId = m.id
-                WHERE o.status = 3 and YEAR(o.createdAt) = ${year}
-                GROUP BY m.name
+                WHERE o.status = 3 and YEAR(o.createdAt) = ${year} AND NOT m.name = 'CUSTOM PRESCRIPTION'
+                GROUP BY m.id, m.name, m.price, m.image
                 ORDER BY SUM(od.quantity) DESC
-                LIMIT 10;`,
+                ${selectedFilter};`,
                 {
                     type: QueryTypes.SELECT
                 }
