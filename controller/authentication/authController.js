@@ -71,7 +71,7 @@ module.exports = {
 
 			const htmlToEmail = template({
 				token: emailToken,
-				url: URL
+				url: URL,
 			});
 
 			transporter.sendMail({
@@ -149,7 +149,7 @@ module.exports = {
 
 				const htmlToEmail = template({
 					token: emailToken,
-					url: URL
+					url: URL,
 				});
 
 				transporter.sendMail({
