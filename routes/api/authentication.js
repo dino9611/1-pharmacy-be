@@ -6,7 +6,7 @@ const {
 	forgotPassword,
 	resetPassword,
 	verifyAccount,
-	keepLogin,
+	userSendMessage,
 } = require('../../controller/authentication/authController');
 const { verifyToken } = require('../../middleware');
 
@@ -15,5 +15,6 @@ authRoutes.post('/register', register);
 authRoutes.post('/forgotPassword', forgotPassword);
 authRoutes.post('/resetPassword', verifyToken(), resetPassword);
 authRoutes.post('/verifyAccount', verifyToken(), verifyAccount);
+authRoutes.post('/userSendMessage', userSendMessage);
 
 module.exports = authRoutes;

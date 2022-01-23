@@ -93,8 +93,9 @@ module.exports = {
 	},
 
 	login: async (req, res) => {
+		const { usernameOrEmail, password } = req.body;
+
 		try {
-			const { usernameOrEmail, password } = req.body;
 
 			if (!(usernameOrEmail && password)) {
 				throw { message: 'All input is required' };
@@ -127,9 +128,9 @@ module.exports = {
 	},
 
 	forgotPassword: async (req, res) => {
-		try {
-			const { email } = req.body;
+		const { email } = req.body;
 
+		try {
 			if (!email) {
 				throw { message: 'Email is required' };
 			}
@@ -169,10 +170,10 @@ module.exports = {
 	},
 
 	resetPassword: async (req, res) => {
-		try {
-			const { newPassword } = req.body;
-			const { id } = req.user;
+		const { newPassword } = req.body;
+		const { id } = req.user;
 
+		try {
 			if (!newPassword) {
 				throw { message: 'New password is required' };
 			}
@@ -202,4 +203,36 @@ module.exports = {
 			return res.status(500).send({ message: 'Server error' });
 		}
 	},
+
+	userSendMessage: async (req, res) => {
+		const { name, email, subject, message } = req.body;
+		
+		try {
+			let filepath = path.resolve(
+				__dirname,
+				'../../template/userSendMessage.html',
+			);
+			let htmlString = fs.readFileSync(filepath, 'utf-8');
+			const template = handlebars.compile(htmlString);
+
+			const htmlToEmail = template({
+				name,
+				email,
+				subject,
+				message
+			});
+
+			transporter.sendMail({
+				from: {email},
+				to: 'katherinedavenia24@gmail.com',
+				subject: `Message From User: ${subject}`,
+				html: htmlToEmail,
+			});
+
+			return res.sendStatus(200);
+		} catch (err) {
+			console.error(err.message);
+			return res.status(500).send({ message: 'Server error' });
+		}
+	}
 };
