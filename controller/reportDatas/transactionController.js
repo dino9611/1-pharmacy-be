@@ -185,7 +185,7 @@ module.exports = {
     acceptOrRejectAction: async (req, res) => {
         const { id, newStatus } = req.query;
         const { prescriptionsToBeSubmitted } = req.body;
-        console.log(prescriptionsToBeSubmitted);
+        // const { prescriptionsToBeSubmitted, orderDetails } = req.body;
 
         try {
             await Orders.update(
@@ -193,6 +193,21 @@ module.exports = {
                 { where: { id } }
             );
 
+            // const getMedicineId = await Order_details.update(
+            //     { 
+            //         price: {
+            //             [Op.in]: [prescriptionsToBeSubmitted.map(prescriptionToBeSubmitted => prescriptionToBeSubmitted.orderID)]
+            //         }
+            //     },
+            //     { 
+            //         where: { 
+            //             MedicineID: {
+            //                 [Op.in]: [orderDetails.map(orderDetail => orderDetail.medicine_id)]
+            //             }
+            //         } 
+            //     }
+            // );
+            
             res.status(200).send({ message: "Order status is changed" }); 
         } catch (err) {
             console.error(err.message);
