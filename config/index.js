@@ -9,7 +9,6 @@ const config = require(__dirname + '/../config/config.json')[env];
 const db = {};
 
 const useDotEnv = process.env.USE_DOTENV === 'true';
-
 const URL = process.env.URL || 'http://localhost:3000';
 
 let sequelize;
@@ -58,3 +57,4 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 module.exports = db;
+module.exports.URL = URL;
