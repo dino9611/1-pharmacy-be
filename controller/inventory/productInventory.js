@@ -77,11 +77,19 @@ class Product {
 			const list = await Medicines.findAll({
 				where: {
 					name: {
-						[Op.like]: `${req.query.name}%`,
-					}, // => where name like %? wild card sql
+						[Op.like]: `${req.query?.name || ""}%`,
+					},// => where name like %? wild card sql
+					//Filter price
+					...((req.query?.priceMin || req.query?.priceMax) && {
+						price: {
+							...(req.query?.priceMin && { [Op.gte]: req.query?.priceMin }),
+							...(req.query?.priceMax && { [Op.lte]: req.query?.priceMax })
+						}
+					}),
 				},
-				limit: 10,
+				limit: parseInt(req.query?.limit) || 10,
 			});
+			// console.log(list)
 			res.json(list);
 		} catch (error) {
 			console.log(error);
@@ -114,7 +122,7 @@ class Product {
 			medicine.Raw_materials.forEach((element) => {
 				if (
 					element.stock_quantity -
-						element.Medicine_ingredients.quantity * stockDifference >=
+					element.Medicine_ingredients.quantity * stockDifference >=
 					0
 				) {
 					message = 'material checked';

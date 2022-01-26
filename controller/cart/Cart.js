@@ -5,6 +5,8 @@ const Users = db.Users;
 const Medicines = db.Medicines;
 
 class CartController {
+
+	// UPDATE Cart
 	static async addProductToCart(req, res) {
 		const cart = await Carts.findOne({ where: { id: req.params.id } });
 		const item = await Medicines.findOne({ where: { id: req.body.id } });
@@ -32,15 +34,21 @@ class CartController {
 			});
 		//basic cart add function without auto decrement will await for update
 	}
-	static async getCart(req, res) {
-		const check = await Users.findOne({
-			where: { id: req.params.id },
-			include: Carts,
-		});
 
-		console.log(check.Cart);
-		res.send(check);
+	// GET Cart
+	static async getCart(req, res) {
+		try {
+			const cart = await Users.findOne({
+				where: { id: req.params.id },
+				include: Carts,
+			});
+			console.log(cart);
+			res.send(cart);
+		}
+		catch (err) {
+			console.log(err);
+			res.status(500).send("Something went wrong");
+		}
 	}
 }
-
 module.exports = CartController;
