@@ -54,7 +54,6 @@ module.exports = {
 				...newUserData.dataValues,
 				created: new Date().getTime(),
 			};
-			console.log(dataEmailToken);
 			const emailToken = generateEmailVerificationToken(
 				dataEmailToken,
 				userKey,
@@ -138,7 +137,6 @@ module.exports = {
 			const userData = await Users.findOne({ where: { email } });
 
 			if (userData) {
-				console.log(userKey);
 				const emailToken = generateForgotPasswordToken(userData, userKey);
 
 				let filepath = path.resolve(
@@ -161,7 +159,6 @@ module.exports = {
 				});
 			}
 
-			console.log(userData);
 			return res.sendStatus(204);
 		} catch (err) {
 			console.error(err.message);
