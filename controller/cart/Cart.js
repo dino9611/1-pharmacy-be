@@ -78,6 +78,21 @@ class CartController {
 
 		res.send(data);
 	}
+
+	static async getCart(req, res) {
+		try {
+			const cart = await Users.findOne({
+				where: { id: req.params.id },
+				include: Carts,
+			});
+			console.log(cart);
+			res.send(cart);
+		}
+		catch (err) {
+			console.log(err);
+			res.status(500).send("Something went wrong");
+		}
+	}
 }
 
 module.exports = CartController;
