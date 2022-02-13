@@ -58,6 +58,7 @@ db.Payment_methods = require('./payment_methods')(sequelize, DataTypes);
 //relations
 db.Users.hasOne(db.Carts);
 db.Carts.belongsTo(db.Users);
+db.Cart_details.belongsTo(db.Medicines);
 db.Carts.belongsToMany(db.Medicines, { through: db.Cart_details });
 db.Medicines.belongsToMany(db.Carts, { through: db.Cart_details });
 db.Orders.belongsToMany(db.Medicines, {
