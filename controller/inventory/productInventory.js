@@ -30,17 +30,7 @@ class Product {
 				],
 			});
 
-            const seen = new Set();
-
-			const newDatas = rows.filter(item => {
-                const duplicate = seen.has(item.name);
-                seen.add(item.name);
-                return !duplicate;
-            })
-
-			console.log(newDatas)
-
-			res.json({ list: newDatas, itemCount: count });
+			res.json({ list: rows, itemCount: count });
 		} catch (error) {
 			console.log(error);
 			res.json({ message: error });

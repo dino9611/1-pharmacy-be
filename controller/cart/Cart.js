@@ -17,7 +17,7 @@ class CartController {
 			if (!cart) {
 				cart = await Carts.create({
 					isCheckout: false,
-					userId: user.id
+					UserId: user.id
 				});
 				cartDetail = await Cart_details.create({
 					quantity,
@@ -78,7 +78,6 @@ class CartController {
 			const cart = await Carts.findOne({
 				where: { UserId: user.id },
 			});
-			
 			if (!cart) {
 				return res.status(404).json({ message: 'No cart' });
 			}

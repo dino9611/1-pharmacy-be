@@ -1,5 +1,6 @@
 const db = require('../../models');
 const Orders = db.Orders;
+const Carts = db.Carts;
 const { QueryTypes } = require('sequelize');
 const { sequelize } = require('../../config');
 
@@ -82,7 +83,7 @@ module.exports = {
         
         try {
             const selectedStatus = (status === "2") ?  `(o.status = 2 OR o.status = 3)` : `o.status = ${status}`
-            const selectedId = (filter === "byUser") ? `u.id = ${id}` : `o.id = ${id}`
+            const selectedId = (filter === "byUser") ? `o.UserId = ${id}` : `o.id = ${id}`
             const selectedFilter = (filter === "byOrder") ? `WHERE ${selectedStatus}` : `WHERE ${selectedId} AND o.status = ${status}`
             const pagination = (limit && page) ? `LIMIT ${limit} OFFSET ${offset}` : ``
             
@@ -237,6 +238,42 @@ module.exports = {
             })
             
             res.status(200).send(newDatas);
+		} catch (err) {
+			console.error(err.message);
+            return res.status(500).send({ message: "Server error" });
+		}
+	},
+
+    onUserCheckout: async (req, res) => {
+		const { user } = req;
+        const { name, phoneNumber, address, grandTotal } = req.body;
+
+        console.log(name, phoneNumber, address, grandTotal )
+		try {
+			await Carts.update(
+                { 
+                    isCheckout: 1
+                },
+                {
+                    where: {
+                        UserId: user.id
+                    } 
+                },
+            );
+            
+            await Orders.create({
+                shipping_name: name,
+                shipping_address: address,
+                shipping_phone_number: phoneNumber,
+                status: 1,
+                UserId: user.id,
+            });
+
+            await Carts.destroy({
+                where: { UserId: user.id },
+            })
+
+            res.status(200);
 		} catch (err) {
 			console.error(err.message);
             return res.status(500).send({ message: "Server error" });

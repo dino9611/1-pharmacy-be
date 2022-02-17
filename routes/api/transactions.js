@@ -1,6 +1,6 @@
 const express = require('express');
 const transactionRoutes = express.Router();
-const { getUserDatas, getUserDetails, getOrderHistory, getOrderDetails, acceptOrRejectAction, getMaterialList } = require('../../controller/reportDatas/transactionController');
+const { getUserDatas, getUserDetails, getOrderHistory, getOrderDetails, acceptOrRejectAction, getMaterialList, onUserCheckout } = require('../../controller/reportDatas/transactionController');
 const { verifyAdminToken, verifyToken } = require('../../middleware');
 
 transactionRoutes.get('/admin/transactions/userDatas', verifyAdminToken(), getUserDatas);
@@ -11,5 +11,6 @@ transactionRoutes.get('/orderHistory', verifyToken(), getOrderHistory); // for u
 transactionRoutes.get('/orderHistory/order-details', verifyToken(), getOrderDetails);// for user !! user order history 
 transactionRoutes.post('/admin/transactions/orderRequest', verifyAdminToken(), acceptOrRejectAction);
 transactionRoutes.get('/admin/transactions/material-list', getMaterialList);
+transactionRoutes.post('/checkout', verifyToken(), onUserCheckout);
 
 module.exports = transactionRoutes;
