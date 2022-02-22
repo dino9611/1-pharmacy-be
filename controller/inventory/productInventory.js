@@ -97,7 +97,6 @@ class Product {
 	static async createProduct(req, res) {
 		//request format [{medicineInfo, materials:[{}]]
 		let input = req.body;
-		console.log(req.body);
 		try {
 			let newMedicine = await Medicines.create({
 				...input,
@@ -172,7 +171,6 @@ class Product {
 					message = 'material checked';
 				} else {
 					rejectMaterial.push(element.name);
-					console.log(rejectMaterial);
 					message = 'material unavailable';
 				}
 			});
@@ -255,7 +253,6 @@ class Product {
 					},
 				},
 			});
-			console.log(medicine);
 			res.send(medicine);
 		} catch (error) {
 			console.log(error);

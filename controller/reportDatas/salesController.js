@@ -21,7 +21,6 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
             res.status(200).send(datas.map(data => ({
                 ...data,
                 total_sales: parseInt(data.total_sales)
@@ -52,7 +51,6 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
             res.status(200).send(datas);
         } catch (err) {
             console.error(err.message);
@@ -82,7 +80,7 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
+            
             res.status(200).send(datas.map(data => ({
                 ...data,
                 total_sales: parseInt(data.total_sales)
@@ -118,7 +116,7 @@ module.exports = {
                 4: "Cancelled or Failed Orders"
             }
 
-            console.log(datas);
+            
             res.status(200).send(datas.map(data => ({
                 ...data,
                 status: statusText[data.status]
@@ -146,7 +144,7 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
+            
             res.status(200).send(datas);
         } catch (err) {
             console.error(err.message);

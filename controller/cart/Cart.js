@@ -11,7 +11,7 @@ class CartController {
 		const { medicineId, quantity } = req.body;
 
 		try {
-			let cart = await Carts.findOne({ where: { userId: user.id, isCheckout: false } });
+			let cart = await Carts.findOne({ where: { UserId: user.id, isCheckout: false } });
 			let cartDetail;
 
 			if (!cart) {
@@ -134,7 +134,7 @@ class CartController {
 				},
 				include: Medicines
 			});
-			
+
 			return res.status(200).json({
 				...cart.dataValues,
 				cartDetails

@@ -26,7 +26,6 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
             res.status(200).send(datas.map(data => ({
                 ...data,
                 total_revenue: parseInt(data.total_revenue)
@@ -62,7 +61,6 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
             res.status(200).send(datas.map(data => ({
                 ...data,
                 total_revenue: parseInt(data.total_revenue)
@@ -86,7 +84,6 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
             res.status(200).send(datas);
         } catch (err) {
             console.error(err.message);
@@ -105,7 +102,6 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
             res.status(200).send(datas);
         } catch (err) {
             console.error(err.message);

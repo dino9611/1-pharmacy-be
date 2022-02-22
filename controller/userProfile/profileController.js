@@ -5,7 +5,6 @@ const Users = db.Users;
 class Profile {
 	static async getProfile(req, res) {
 		let data = await Users.findOne({ where: { id: req.params.id } });
-		console.log(data);
 		res.json(data.dataValues);
 	}
 

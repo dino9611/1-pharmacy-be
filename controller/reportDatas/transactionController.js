@@ -1,6 +1,9 @@
 const db = require('../../models');
 const Orders = db.Orders;
+const Order_details = db.Order_details;
+const Medicines = db.Medicines;
 const Carts = db.Carts;
+const Cart_details = db.Cart_details;
 const { QueryTypes } = require('sequelize');
 const { sequelize } = require('../../config');
 
@@ -30,7 +33,6 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
             res.status(200).json({
                 data: datas,
                 meta: {
@@ -39,7 +41,6 @@ module.exports = {
                     limit,
                 }
             });
-            console.log(countDatas)
         } catch (err) {
             console.error(err.message);
             return res.status(500).send({ message: "Server error" });
@@ -64,7 +65,6 @@ module.exports = {
                 1: "Yes"
             }
 
-            console.log(datas);
             res.status(200).json({
                 data: datas.map(data => ({
                     ...data,
@@ -78,12 +78,14 @@ module.exports = {
     },
 
     getOrderHistory: async (req, res) => {
-        const { id, status, filter, limit, page } = req.query;
+        const { orderId, status, filter, limit, page } = req.query;
         const offset = (page * limit) - limit;
-        
+        const { user } = req;
+
         try {
             const selectedStatus = (status === "2") ?  `(o.status = 2 OR o.status = 3)` : `o.status = ${status}`
-            const selectedId = (filter === "byUser") ? `o.UserId = ${id}` : `o.id = ${id}`
+            const myHistory = (filter === "user") ? `o.id = ${orderId}` : `o.id = ${orderId}`
+            const selectedId = (filter === "byUser") ? `o.UserId = ${user.id}` : `${myHistory}`
             const selectedFilter = (filter === "byOrder") ? `WHERE ${selectedStatus}` : `WHERE ${selectedId} AND o.status = ${status}`
             const pagination = (limit && page) ? `LIMIT ${limit} OFFSET ${offset}` : ``
             
@@ -122,7 +124,6 @@ module.exports = {
                 }
             );
 
-            // console.log(datas);
             res.status(200).json({
                 data: datas.map(data => ({
                     ...data,
@@ -169,7 +170,6 @@ module.exports = {
                 }
             );
 
-            console.log(datas);
             res.status(200).send(datas.map(data => ({
                 ...data,
                 total_price: parseInt(data.total_price),
@@ -246,10 +246,30 @@ module.exports = {
 
     onUserCheckout: async (req, res) => {
 		const { user } = req;
-        const { name, phoneNumber, address, grandTotal } = req.body;
+        const { name, phoneNumber, address, picture} = req.body;
 
-        console.log(name, phoneNumber, address, grandTotal )
 		try {
+            const cart_id = await Carts.findOne({ 
+                attributes: ['id'],
+                where: { UserId: user.id } 
+            });
+
+            const cart_details = await Cart_details.findAll({ 
+                attributes: ['MedicineId', 'quantity'],
+                where: { CartId: cart_id.dataValues.id } 
+            });
+
+            const medicine_id_item = cart_details.map((medicine) => {
+                return (
+                    parseInt(medicine.dataValues.MedicineId)
+                )
+            })
+
+            const medicine_price = await Medicines.findAll({
+                attributes: ['price'],
+                where: { id: medicine_id_item } 
+            })
+
 			await Carts.update(
                 { 
                     isCheckout: 1
@@ -261,17 +281,41 @@ module.exports = {
                 },
             );
             
-            await Orders.create({
+            await Carts.destroy({
+                where: { UserId: user.id },
+            })
+            
+            const newOrder = await Orders.create({
                 shipping_name: name,
                 shipping_address: address,
                 shipping_phone_number: phoneNumber,
                 status: 1,
                 UserId: user.id,
+                payment_image_proof: String(picture.name),
+                transaction_number: Math.floor(1000 + Math.random() * 9000),
             });
 
-            await Carts.destroy({
-                where: { UserId: user.id },
+            const order_id = await Orders.findAll({ 
+                attributes: ['id'],
+                where: { id: newOrder.dataValues.id } 
+            });
+
+            const order_id_item = order_id.map((order) => {
+                return (
+                    order.dataValues.id
+                )
             })
+
+            await Order_details.bulkCreate(cart_details.map((cart_detail, index) => {
+                return (
+                    {
+                        MedicineId: parseInt(cart_detail.dataValues.MedicineId),
+                        quantity: parseInt(cart_detail.dataValues.quantity),
+                        price: parseInt(medicine_price[index].dataValues.price),
+                        OrderId: parseInt(order_id_item),
+                    }
+                )
+            }))
 
             res.status(200);
 		} catch (err) {
