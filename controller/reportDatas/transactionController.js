@@ -287,7 +287,6 @@ module.exports = {
                 shipping_phone_number: phoneNumber,
                 status: 2,
                 UserId: user.id,
-                payment_image_proof: String(picture.name),
                 transaction_number: Math.floor(1000 + Math.random() * 9000),
             });
 
