@@ -78,14 +78,13 @@ module.exports = {
     },
 
     getOrderHistory: async (req, res) => {
-        const { orderId, status, filter, limit, page } = req.query;
+        const { id, status, filter, limit, page } = req.query;
         const offset = (page * limit) - limit;
-        const { user } = req;
 
         try {
+            const myHistory = (filter === "user") ? `o.id = ${id}` : `o.id = ${id}`
             const selectedStatus = (status === "2") ?  `(o.status = 2 OR o.status = 3)` : `o.status = ${status}`
-            const myHistory = (filter === "user") ? `o.id = ${orderId}` : `o.id = ${orderId}`
-            const selectedId = (filter === "byUser") ? `o.UserId = ${user.id}` : `${myHistory}`
+            const selectedId = (filter === "byUser") ? `u.id = ${id}` : `${myHistory}`
             const selectedFilter = (filter === "byOrder") ? `WHERE ${selectedStatus}` : `WHERE ${selectedId} AND o.status = ${status}`
             const pagination = (limit && page) ? `LIMIT ${limit} OFFSET ${offset}` : ``
             
@@ -124,6 +123,7 @@ module.exports = {
                 }
             );
 
+            // console.log(datas);
             res.status(200).json({
                 data: datas.map(data => ({
                     ...data,
