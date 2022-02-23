@@ -281,15 +281,11 @@ module.exports = {
                 },
             );
             
-            await Carts.destroy({
-                where: { UserId: user.id },
-            })
-            
             const newOrder = await Orders.create({
                 shipping_name: name,
                 shipping_address: address,
                 shipping_phone_number: phoneNumber,
-                status: 1,
+                status: 2,
                 UserId: user.id,
                 payment_image_proof: String(picture.name),
                 transaction_number: Math.floor(1000 + Math.random() * 9000),
@@ -316,6 +312,10 @@ module.exports = {
                     }
                 )
             }))
+
+            await Carts.destroy({
+                where: { UserId: user.id },
+            })
 
             res.status(200);
 		} catch (err) {
